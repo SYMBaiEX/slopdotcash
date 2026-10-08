@@ -526,7 +526,7 @@ export function FundingReview({
     published?.files.proposal.sha256 ??
     review?.sourceSnapshotSha256 ??
     "";
-  const workflowInputs = `branch: develop\nproject: ${project.id}\nmonth: ${cycleId}\naction: ${cycleAction}\nsource SHA-256: ${requiredSha}`;
+  const workflowInputs = `branch: main\nproject: ${project.id}\nmonth: ${cycleId}\naction: ${cycleAction}\nsource SHA-256: ${requiredSha}`;
   const paymentsDisabled = project.reward.paymentMode === "disabled";
   const reviewOpen =
     published?.state === "review" &&
@@ -593,7 +593,9 @@ export function FundingReview({
           <p>
             Drafts stay on this device. GitHub review approves awards; signers
             send payments outside Slop.{" "}
-            <a href={`${repo}/blob/develop/funding/maintainer-payouts.md`}>
+            <a
+              href={`${repo}/blob/${browserDeployment.branch}/funding/maintainer-payouts.md`}
+            >
               Step-by-step guide
             </a>
           </p>
@@ -799,7 +801,7 @@ export function FundingReview({
                       </button>
                       {published ? (
                         <a
-                          href={`${repo}/upload/develop/cycles/${project.id}/${cycleId}`}
+                          href={`${repo}/upload/development/cycles/${project.id}/${cycleId}`}
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -1326,7 +1328,7 @@ export function FundingReview({
                         >
                           Verify deposit on GitHub
                         </a>{" "}
-                        — select develop and enter project {project.id}, month{" "}
+                        — select main and enter project {project.id}, month{" "}
                         {cycleId}, and the public transaction signature. Review
                         the resulting evidence PR.
                       </p>
@@ -1469,7 +1471,7 @@ export function FundingReview({
                   <dl className="workflow-inputs">
                     <dt>Branch</dt>
                     <dd>
-                      <code>develop</code>
+                      <code>main</code>
                     </dd>
                     <dt>Project</dt>
                     <dd>
@@ -1565,7 +1567,7 @@ export function FundingReview({
                         >
                           Link your Squads proposal
                         </a>{" "}
-                        — select develop, {project.id}/{cycleId}, its public
+                        — select main, {project.id}/{cycleId}, its public
                         transaction index, and single or batch mode. The
                         workflow checks every transfer before opening a binding
                         PR.

@@ -40,6 +40,7 @@ import {
   type PromotionCycle,
   projectPromotionEligible,
 } from "./lib/allocation-funding";
+import { browserDeployment } from "./lib/browser-deployment";
 import { CONTACT_EMAIL, CONTACT_MAILTO } from "./lib/contact";
 import { copyText } from "./lib/copy-text";
 import { currentProjectFundingRecords } from "./lib/funding";
@@ -1710,7 +1711,7 @@ function ProjectPage({
 }
 
 function HowItWorksPage() {
-  const protocolRoot = `${SOURCE_REPOSITORY}/blob/develop/protocol`;
+  const protocolRoot = `${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/protocol`;
   return (
     <main className="shell evidence-page how-it-works">
       <section className="evidence-page-hero">
@@ -2207,7 +2208,7 @@ function WhoBuildsOnSlop({
   const knownRepositories = outside.recognizable.slice(0, 10);
   const dateLabel = whoBuildsDateLabel(outside.generatedAt);
   const pinnedFile = (path: string) =>
-    `${SOURCE_REPOSITORY}/blob/develop/${path}`;
+    `${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/${path}`;
   const repositoryUrl = (repo: string) => `https://github.com/${repo}`;
   const massCount = outside.massAccounts.length;
   const massNote =
@@ -2397,7 +2398,7 @@ function SponsorsPage({
   state: DataState;
   retry: () => void;
 }) {
-  const protocolRoot = `${SOURCE_REPOSITORY}/blob/develop/protocol`;
+  const protocolRoot = `${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/protocol`;
   const now = Date.now();
   return (
     <main className="shell evidence-page">
@@ -2509,7 +2510,7 @@ function SponsorsPage({
           </li>
           <li>
             <ExternalLinkAnchor
-              href={`${SOURCE_REPOSITORY}/tree/develop/projects`}
+              href={`${SOURCE_REPOSITORY}/tree/${browserDeployment.branch}/projects`}
             >
               Reviewed manifests
             </ExternalLinkAnchor>
@@ -2722,7 +2723,7 @@ function SponsorsPage({
           </li>
           <li>
             <ExternalLinkAnchor
-              href={`${SOURCE_REPOSITORY}/blob/develop/funding/README.md`}
+              href={`${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/funding/README.md`}
             >
               Funding records
             </ExternalLinkAnchor>
