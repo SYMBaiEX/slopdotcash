@@ -5,6 +5,10 @@
  * becoming a plausible-looking empty snapshot.
  */
 
+import { resolveGitHubToken } from "./github-token";
+
+export { resolveGitHubToken } from "./github-token";
+
 import { readFileSync } from "node:fs";
 import { mkdir, rename, rm } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
@@ -156,7 +160,7 @@ interface ParsedPullRequest {
   pages: {
     comments: NestedPageState;
     reviews: NestedPageState;
-    files: NestedPageState;
+    files: NestedPageState | null;
     closingIssues: NestedPageState;
   };
 }
@@ -173,6 +177,10 @@ interface ParsedMergedPullRequestReview {
 interface ParsedIssue {
   record: IssueRecord;
   state: string;
+  references: ConnectionPage<{
+    id: string;
+    pullRequestId: string | null;
+  }> | null;
   pages: {
     comments: NestedPageState;
     closedByPullRequests: NestedPageState;
@@ -184,6 +192,7 @@ interface NodeReference {
   kind: "Issue" | "PullRequest";
   outcome: MergedPullRequestOutcome | null;
   openVersion: string | null;
+  commitPage?: NestedPageState & { baseRefOid: string; headRefOid: string };
 }
 
 type ExpectedRecordState = "closed" | "merged" | "open";
@@ -229,6 +238,12 @@ export interface RateLimitSnapshot {
 }
 
 export interface GraphqlExecutor {
+  compareCommitPage?(
+    repository: TargetRepository,
+    base: string,
+    head: string,
+    page: number,
+  ): Promise<JsonRecord>;
   execute(document: string, variables?: GraphqlVariables): Promise<JsonRecord>;
   ensureBudget?(requiredCost: number): Promise<void>;
   getRequestCount(): number;
@@ -411,6 +426,17 @@ const MERGED_PULL_REQUEST_REVIEW_FRAGMENT = `
   }
 `;
 
+const ISSUE_REFERENCE_FIELDS = `
+  totalCount
+  pageInfo { hasNextPage endCursor }
+  nodes {
+    ... on CrossReferencedEvent {
+      id
+      source { __typename ... on PullRequest { id } }
+    }
+  }
+`;
+
 const ISSUE_FRAGMENT = `
   fragment LeaderboardIssue on Issue {
     id
@@ -427,6 +453,7 @@ const ISSUE_FRAGMENT = `
     labels(first: 100) { ${LABEL_FIELDS} }
     assignees(first: 100) { ${ASSIGNEE_FIELDS} }
     comments(first: 100) { ${COMMENT_FIELDS} }
+    timelineItems(first: 100, itemTypes: [CROSS_REFERENCED_EVENT]) @include(if: $includeReferences) { ${ISSUE_REFERENCE_FIELDS} }
     closedByPullRequestsReferences(first: 100) {
       totalCount
       pageInfo { hasNextPage endCursor }
@@ -481,6 +508,34 @@ const SEARCH_REFERENCES_QUERY = `
           author { ...LeaderboardActor }
           additions
           deletions
+          baseRefName
+          baseRefOid
+          headRefOid
+          commits(first: 100) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes { commit { oid author { user { ...LeaderboardActor } } } }
+          }
+        }
+      }
+    }
+    rateLimit { cost limit remaining resetAt }
+  }
+  ${ACTOR_FRAGMENT}
+`;
+
+const MORE_OUTCOME_COMMITS_QUERY = `
+  query LeaderboardOutcomeCommits($id: ID!, $after: String!) {
+    node(id: $id) {
+      ... on PullRequest {
+        id
+        state
+        mergedAt
+        baseRefName
+        commits(first: 100, after: $after) {
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          nodes { commit { oid author { user { ...LeaderboardActor } } } }
         }
       }
     }
@@ -528,7 +583,7 @@ const REVIEWED_PULL_REQUEST_REFERENCES_QUERY = `
 `;
 
 const ISSUE_DETAILS_QUERY = `
-  query LeaderboardIssueDetails($ids: [ID!]!) {
+  query LeaderboardIssueDetails($ids: [ID!]!, $includeReferences: Boolean!) {
     nodes(ids: $ids) {
       __typename
       ... on Issue { ...LeaderboardIssue }
@@ -597,6 +652,17 @@ const MORE_PULL_REQUEST_COMMENTS_QUERY = `
     rateLimit { cost limit remaining resetAt }
   }
   ${ACTOR_FRAGMENT}
+`;
+
+const MORE_ISSUE_REFERENCES_QUERY = `
+  query LeaderboardMoreIssueReferences($id: ID!, $after: String!) {
+    node(id: $id) {
+      ... on Issue {
+        timelineItems(first: 100, after: $after, itemTypes: [CROSS_REFERENCED_EVENT]) { ${ISSUE_REFERENCE_FIELDS} }
+      }
+    }
+    rateLimit { cost limit remaining resetAt }
+  }
 `;
 
 const MORE_ISSUE_COMMENTS_QUERY = `
@@ -674,6 +740,9 @@ const MORE_FILES_QUERY = `
   query LeaderboardMoreFiles($id: ID!, $after: String!) {
     node(id: $id) {
       ... on PullRequest {
+        state
+        isDraft
+        headRefOid
         files(first: 100, after: $after) { ${FILE_FIELDS} }
       }
     }
@@ -733,6 +802,7 @@ export const LEADERBOARD_QUERY_DOCUMENTS = {
   reviewInlineComments: REVIEW_INLINE_COMMENTS_QUERY,
   morePullRequestComments: MORE_PULL_REQUEST_COMMENTS_QUERY,
   moreIssueComments: MORE_ISSUE_COMMENTS_QUERY,
+  moreIssueReferences: MORE_ISSUE_REFERENCES_QUERY,
   moreReviews: MORE_REVIEWS_QUERY,
   moreFormalReviews: MORE_FORMAL_REVIEWS_QUERY,
   moreReviewInlineComments: MORE_REVIEW_INLINE_COMMENTS_QUERY,
@@ -1015,7 +1085,12 @@ function parsePullRequest(value: unknown, path: string): ParsedPullRequest {
   const id = asString(node.id, `${path}.id`);
   const comments = parseComments(node.comments, `${path}.comments`, id);
   const reviews = parseReviews(node.reviews, `${path}.reviews`);
-  const files = parseFiles(node.files, `${path}.files`);
+  // GitHub can return null for an oversized draft diff, even with zero diff
+  // counters. Retain that draft, but never represent unavailable files as [].
+  const files =
+    node.files === null && node.state === "OPEN" && node.isDraft === true
+      ? null
+      : parseFiles(node.files, `${path}.files`);
   const closingIssues = parseClosingIssueIds(
     node.closingIssuesReferences,
     `${path}.closingIssuesReferences`,
@@ -1046,7 +1121,7 @@ function parsePullRequest(value: unknown, path: string): ParsedPullRequest {
       author: parseActor(node.author, `${path}.author`),
       assignees: parseAssignees(node.assignees, `${path}.assignees`),
       labels: parseLabels(node.labels, `${path}.labels`),
-      files: files.nodes,
+      files: files?.nodes ?? null,
       comments: comments.nodes,
       reviews: reviews.nodes,
       closingIssueIds: closingIssues.nodes.map((issue) => issue.id),
@@ -1061,7 +1136,7 @@ function parsePullRequest(value: unknown, path: string): ParsedPullRequest {
     pages: {
       comments: pageState(comments),
       reviews: pageState(reviews),
-      files: pageState(files),
+      files: files === null ? null : pageState(files),
       closingIssues: pageState(closingIssues),
     },
   };
@@ -1100,6 +1175,32 @@ function parseMergedPullRequestReview(
   };
 }
 
+function parseIssueReferences(
+  value: unknown,
+  path: string,
+): NonNullable<ParsedIssue["references"]> {
+  const connection = asRecord(value, path);
+  return {
+    totalCount: asNumber(connection.totalCount, `${path}.totalCount`),
+    pageInfo: parsePageInfo(connection.pageInfo, `${path}.pageInfo`),
+    nodes: asArray(connection.nodes, `${path}.nodes`).map((value, index) => {
+      const nodePath = `${path}.nodes[${index}]`;
+      const node = asRecord(value, nodePath);
+      const source = child(node, "source", nodePath);
+      const kind = asString(source.__typename, `${nodePath}.source.__typename`);
+      if (kind !== "Issue" && kind !== "PullRequest")
+        throw new Error(`${nodePath} has an unsupported reference source`);
+      return {
+        id: asString(node.id, `${nodePath}.id`),
+        pullRequestId:
+          kind === "PullRequest"
+            ? asString(source.id, `${nodePath}.source.id`)
+            : null,
+      };
+    }),
+  };
+}
+
 function parseIssue(value: unknown, path: string): ParsedIssue {
   const node = asRecord(value, path);
   const id = asString(node.id, `${path}.id`);
@@ -1109,6 +1210,10 @@ function parseIssue(value: unknown, path: string): ParsedIssue {
     `${path}.closedByPullRequestsReferences`,
   );
   return {
+    references:
+      node.state === "OPEN"
+        ? parseIssueReferences(node.timelineItems, `${path}.timelineItems`)
+        : null,
     state: asString(node.state, `${path}.state`),
     record: {
       id,
@@ -1436,6 +1541,25 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
     document: string,
     variables: GraphqlVariables = {},
   ): Promise<JsonRecord> {
+    return this.#executeRequest(document, variables);
+  }
+
+  async compareCommitPage(
+    repository: TargetRepository,
+    base: string,
+    head: string,
+    page: number,
+  ): Promise<JsonRecord> {
+    const path = `/repos/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.name)}/compare/${base}...${head}?per_page=${GRAPHQL_PAGE_SIZE}&page=${page}`;
+    return this.#executeRequest("", {}, path);
+  }
+
+  async #executeRequest(
+    document: string,
+    variables: GraphqlVariables,
+    restPath?: string,
+  ): Promise<JsonRecord> {
+    const apiLabel = restPath ? "GitHub comparison" : "GitHub GraphQL";
     let response: Response | null = null;
     let payload: unknown;
     let parsedResponse = false;
@@ -1445,7 +1569,7 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
       attempt <= MAX_GRAPHQL_REQUEST_ATTEMPTS;
       attempt += 1
     ) {
-      await this.ensureBudget(1);
+      if (!restPath) await this.ensureBudget(1);
       this.#requestCount += 1;
       const controller = new AbortController();
       const timeout = setTimeout(() => {
@@ -1453,18 +1577,24 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
       }, this.#requestTimeoutMs);
       let responseBody = "";
       try {
-        response = await this.#fetch("https://api.github.com/graphql", {
-          method: "POST",
-          headers: {
-            Accept: "application/vnd.github+json",
-            Authorization: `Bearer ${this.#token}`,
-            "Content-Type": "application/json",
-            "User-Agent": "eliza-computer-leaderboard",
-            "X-GitHub-Api-Version": "2022-11-28",
+        response = await this.#fetch(
+          `https://api.github.com${restPath ?? "/graphql"}`,
+          {
+            method: restPath ? "GET" : "POST",
+            redirect: "error",
+            headers: {
+              Accept: "application/vnd.github+json",
+              Authorization: `Bearer ${this.#token}`,
+              "Content-Type": "application/json",
+              "User-Agent": "eliza-computer-leaderboard",
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+            body: restPath
+              ? undefined
+              : JSON.stringify({ query: document, variables: activeVariables }),
+            signal: controller.signal,
           },
-          body: JSON.stringify({ query: document, variables: activeVariables }),
-          signal: controller.signal,
-        });
+        );
         responseBody = await readGraphqlResponseBody(response);
       } catch (cause) {
         if (cause instanceof GraphqlResponseBoundaryError) throw cause;
@@ -1475,8 +1605,8 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
         if (!retryable || attempt === MAX_GRAPHQL_REQUEST_ATTEMPTS) {
           throw new Error(
             timedOut
-              ? `GitHub GraphQL request timed out after ${this.#requestTimeoutMs}ms (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS})`
-              : `GitHub GraphQL network request failed (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS})`,
+              ? `${apiLabel} request timed out after ${this.#requestTimeoutMs}ms (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS})`
+              : `${apiLabel} network request failed (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS})`,
             { cause },
           );
         }
@@ -1522,8 +1652,8 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
         // non-JSON API failures; exhausted malformed-JSON retries fail closed.
         throw new Error(
           retryableMalformedJson
-            ? `GitHub GraphQL HTTP ${response.status} returned malformed JSON (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS}; ${contentType ?? "unknown content type"})`
-            : `GitHub GraphQL HTTP ${response.status} returned a non-JSON response (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS}; ${contentType ?? "unknown content type"}${describePageSize(activeVariables)})`,
+            ? `${apiLabel} HTTP ${response.status} returned malformed JSON (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS}; ${contentType ?? "unknown content type"})`
+            : `${apiLabel} HTTP ${response.status} returned a non-JSON response (${attempt}/${MAX_GRAPHQL_REQUEST_ATTEMPTS}; ${contentType ?? "unknown content type"}${describePageSize(activeVariables)})`,
           { cause },
         );
       }
@@ -1534,15 +1664,14 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
     const envelope = asRecord(payload, "GitHub GraphQL response");
     if (!response.ok) {
       throw new Error(
-        `GitHub GraphQL HTTP ${response.status}: ${sanitizeGraphqlError(envelope.message)}`,
+        `${apiLabel} HTTP ${response.status}: ${sanitizeGraphqlError(envelope.message)}`,
       );
     }
     if (Array.isArray(envelope.errors) && envelope.errors.length > 0) {
       const errors = envelope.errors.map(sanitizeGraphqlError).join("; ");
-      throw new Error(
-        `GitHub GraphQL rejected the leaderboard query: ${errors}`,
-      );
+      throw new Error(`${apiLabel} rejected the leaderboard query: ${errors}`);
     }
+    if (restPath) return envelope;
     const data = asRecord(envelope.data, "GitHub GraphQL response.data");
     const rateLimit = parseRateLimit(data.rateLimit);
     this.#startingRemaining =
@@ -1562,7 +1691,7 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
       rateLimit.remaining < this.#minimumRateLimitReserve
     ) {
       throw new Error(
-        `GitHub GraphQL safety budget exceeded (${this.#windowConsumedCost}/${effectiveMaxGenerationCost} points consumed in the current window, ${rateLimit.remaining} remaining; reserve ${this.#minimumRateLimitReserve})`,
+        `${apiLabel} safety budget exceeded (${this.#windowConsumedCost}/${effectiveMaxGenerationCost} points consumed in the current window, ${rateLimit.remaining} remaining; reserve ${this.#minimumRateLimitReserve})`,
       );
     }
     return data;
@@ -1578,39 +1707,6 @@ export class GitHubGraphqlClient implements GraphqlExecutor {
     }
     return this.#rateLimit;
   }
-}
-
-async function loadGhToken(): Promise<string> {
-  const process = Bun.spawn(["gh", "auth", "token"], {
-    stdin: "ignore",
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const [exitCode, stdout, stderr] = await Promise.all([
-    process.exited,
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-  ]);
-  if (exitCode !== 0) {
-    throw new Error(
-      `GITHUB_TOKEN is unset and gh auth token failed: ${stderr.trim().slice(0, 300)}`,
-    );
-  }
-  const token = stdout.trim();
-  if (!token) {
-    throw new Error(
-      "GITHUB_TOKEN is unset and gh auth token returned no token",
-    );
-  }
-  return token;
-}
-
-export async function resolveGitHubToken(
-  environment: Record<string, string | undefined> = Bun.env,
-  ghTokenLoader: () => Promise<string> = loadGhToken,
-): Promise<string> {
-  const token = environment.GITHUB_TOKEN?.trim();
-  return token || (await ghTokenLoader());
 }
 
 function parseIsoDate(value: Date, path: string): Date {
@@ -1715,6 +1811,22 @@ function parseSearchReference(
     outcome:
       kind === "PullRequest" ? parsePullRequestOutcome(node, path) : null,
     openVersion: null,
+    ...(kind === "PullRequest"
+      ? {
+          commitPage: {
+            baseRefOid: asFullCommitSha(node.baseRefOid, `${path}.baseRefOid`),
+            headRefOid: asFullCommitSha(node.headRefOid, `${path}.headRefOid`),
+            totalCount: asNumber(
+              child(node, "commits", path).totalCount,
+              `${path}.commits.totalCount`,
+            ),
+            pageInfo: parsePageInfo(
+              child(node, "commits", path).pageInfo,
+              `${path}.commits.pageInfo`,
+            ),
+          },
+        }
+      : {}),
   };
 }
 
@@ -1816,18 +1928,6 @@ export async function collectPullRequestReviewCounts(
     }
   }
   return reviewCounts;
-}
-
-export async function collectReviewedPullRequestIds(
-  client: GraphqlExecutor,
-  references: ReadonlyArray<{ id: string }>,
-): Promise<Set<string>> {
-  const reviewCounts = await collectPullRequestReviewCounts(client, references);
-  return new Set(
-    [...reviewCounts].flatMap(([id, entry]) =>
-      entry.reviewCount > 0 ? [id] : [],
-    ),
-  );
 }
 
 async function preflightRepository(
@@ -1947,7 +2047,134 @@ export async function collectSearchReferences(
       `GitHub Search returned ${deduped.length} unique references but reported ${expectedCount} for ${searchRange(from, to)}`,
     );
   }
+  for (const reference of deduped) {
+    await completeOutcomeCommits(client, reference, repository);
+  }
   return deduped;
+}
+
+// The pull-request connection stops at 250 commits. GitHub's comparison
+// endpoint can paginate the complete immutable base/head range beyond that.
+const GITHUB_PULL_REQUEST_COMMIT_LIST_LIMIT = 250;
+
+async function completeOutcomeCommits(
+  client: GraphqlExecutor,
+  reference: NodeReference,
+  repository: TargetRepository,
+): Promise<void> {
+  const outcome = reference.outcome;
+  const firstPage = reference.commitPage;
+  if (!outcome || !firstPage) return;
+  // Other branches retain author-only credit and need no commit hydration.
+  if (outcome.baseRefName !== repository.integrationBranch) {
+    outcome.commits = null;
+    delete reference.commitPage;
+    return;
+  }
+  let commits = outcome.commits;
+  if (!commits) throw new Error(`PR #${outcome.number} has no commit evidence`);
+  if (firstPage.totalCount > GITHUB_PULL_REQUEST_COMMIT_LIST_LIMIT) {
+    if (!client.compareCommitPage)
+      throw new Error("Complete commit comparison is unavailable");
+    const compared: NonNullable<MergedPullRequestOutcome["commits"]> = [];
+    for (
+      let page = 1;
+      page <= Math.ceil(firstPage.totalCount / GRAPHQL_PAGE_SIZE);
+      page += 1
+    ) {
+      const data = await client.compareCommitPage(
+        repository,
+        firstPage.baseRefOid,
+        firstPage.headRefOid,
+        page,
+      );
+      if (
+        data.total_commits !== firstPage.totalCount ||
+        child(data, "base_commit", "comparison").sha !== firstPage.baseRefOid
+      ) {
+        throw new Error(
+          `PR #${outcome.number} comparison does not match its commit range`,
+        );
+      }
+      const nodes = asArray(data.commits, "comparison.commits").map(
+        (value, index) => {
+          const path = `comparison.commits[${index}]`;
+          const commit = asRecord(value, path);
+          const author =
+            commit.author === null
+              ? null
+              : asRecord(commit.author, `${path}.author`);
+          return {
+            commit: {
+              oid: commit.sha,
+              author: {
+                user:
+                  author === null
+                    ? null
+                    : {
+                        __typename: author.type,
+                        id: author.node_id,
+                        login: author.login,
+                        avatarUrl: author.avatar_url,
+                        url: author.html_url,
+                      },
+              },
+            },
+          };
+        },
+      );
+      compared.push(...parseOutcomeCommits({ nodes }, "comparison"));
+    }
+    const known = new Set(compared.map((commit) => commit.oid));
+    if (
+      !known.has(firstPage.headRefOid) ||
+      commits.some((commit) => !known.has(commit.oid))
+    ) {
+      throw new Error(`PR #${outcome.number} comparison omitted known commits`);
+    }
+    commits = compared;
+  }
+  let pageInfo =
+    firstPage.totalCount > GITHUB_PULL_REQUEST_COMMIT_LIST_LIMIT
+      ? { hasNextPage: false, endCursor: null }
+      : firstPage.pageInfo;
+  const cursors = new Set<string>();
+  while (pageInfo.hasNextPage) {
+    const cursor = pageInfo.endCursor;
+    if (!cursor || cursors.has(cursor)) {
+      throw new Error(
+        `PR #${outcome.number} commits cursor is missing or repeated`,
+      );
+    }
+    cursors.add(cursor);
+    const data = await client.execute(MORE_OUTCOME_COMMITS_QUERY, {
+      id: outcome.id,
+      after: cursor,
+    });
+    const node = child(data, "node", "data");
+    const connection = child(node, "commits", "data.node");
+    if (
+      node.id !== outcome.id ||
+      node.state !== "MERGED" ||
+      node.mergedAt !== outcome.mergedAt ||
+      node.baseRefName !== outcome.baseRefName ||
+      connection.totalCount !== firstPage.totalCount
+    ) {
+      throw new Error(`PR #${outcome.number} changed during commit collection`);
+    }
+    commits.push(...parseOutcomeCommits(connection, "data.node.commits"));
+    pageInfo = parsePageInfo(connection.pageInfo, "data.node.commits.pageInfo");
+  }
+  if (
+    commits.length !== firstPage.totalCount ||
+    new Set(commits.map((commit) => commit.oid)).size !== firstPage.totalCount
+  ) {
+    throw new Error(
+      `PR #${outcome.number} commit totals do not match complete unique evidence`,
+    );
+  }
+  outcome.commits = commits;
+  delete reference.commitPage;
 }
 
 async function countSearchResults(
@@ -2070,7 +2297,38 @@ function parsePullRequestOutcome(
     author: parseActor(node.author, `${path}.author`),
     additions: asNumber(node.additions, `${path}.additions`),
     deletions: asNumber(node.deletions, `${path}.deletions`),
+    baseRefName: asString(node.baseRefName, `${path}.baseRefName`),
+    commits: parseOutcomeCommits(node.commits, `${path}.commits`),
   };
+}
+
+function parseOutcomeCommits(
+  value: unknown,
+  path: string,
+): NonNullable<MergedPullRequestOutcome["commits"]> {
+  const connection = asRecord(value, path);
+  const nodes = asArray(connection.nodes, `${path}.nodes`);
+  return nodes.map((nodeValue, index) => {
+    const nodePath = `${path}.nodes[${index}]`;
+    const commit = child(asRecord(nodeValue, nodePath), "commit", nodePath);
+    const commitPath = `${nodePath}.commit`;
+    const author =
+      commit.author === null
+        ? null
+        : parseActor(
+            child(commit, "author", commitPath).user,
+            `${commitPath}.author.user`,
+          );
+    return {
+      oid: asFullCommitSha(commit.oid, `${commitPath}.oid`),
+      // GitHub links app commits to a User whose reserved login ends in
+      // "[bot]" (for example dependabot[bot]); no person can hold that login.
+      author:
+        author?.login.endsWith("[bot]") === true
+          ? { ...author, kind: "Bot" }
+          : author,
+    };
+  });
 }
 
 function parseDetailBatch<
@@ -2186,7 +2444,7 @@ async function completePullRequestConnections(
   );
 
   let filesState = parsed.pages.files;
-  while (filesState.pageInfo.hasNextPage) {
+  while (filesState?.pageInfo.hasNextPage) {
     if (!filesState.pageInfo.endCursor) {
       throw new Error(`PR #${pullRequest.number} files cursor is missing`);
     }
@@ -2194,10 +2452,23 @@ async function completePullRequestConnections(
       id: pullRequest.id,
       after: filesState.pageInfo.endCursor,
     });
-    const page = parseFiles(
-      child(data, "node", "data").files,
-      "data.node.files",
-    );
+    const node = child(data, "node", "data");
+    if (
+      node.files === null &&
+      parsed.state === "OPEN" &&
+      pullRequest.isDraft &&
+      node.state === "OPEN" &&
+      node.isDraft === true &&
+      node.headRefOid === pullRequest.headRefOid
+    ) {
+      // A later page can become unavailable too. Discard the partial diff.
+      pullRequest.files = null;
+      break;
+    }
+    const page = parseFiles(node.files, "data.node.files");
+    if (pullRequest.files === null) {
+      throw new Error(`PR #${pullRequest.number} file detail is unavailable`);
+    }
     pullRequest.files.push(...page.nodes);
     filesState = pageState(page);
   }
@@ -2223,7 +2494,8 @@ async function completePullRequestConnections(
 
   pullRequest.closingIssueIds = [...new Set(pullRequest.closingIssueIds)];
   if (
-    pullRequest.files.length !== parsed.pages.files.totalCount ||
+    (pullRequest.files !== null &&
+      pullRequest.files.length !== parsed.pages.files?.totalCount) ||
     pullRequest.closingIssueIds.length !== parsed.pages.closingIssues.totalCount
   ) {
     throw new Error(
@@ -2250,6 +2522,43 @@ async function completeIssueConnections(
   parsed: ParsedIssue,
 ): Promise<IssueRecord> {
   const issue = parsed.record;
+  if (parsed.references) {
+    const references = [...parsed.references.nodes];
+    let referenceState = pageState(parsed.references);
+    const cursors = new Set<string>();
+    while (referenceState.pageInfo.hasNextPage) {
+      const cursor = referenceState.pageInfo.endCursor;
+      if (!cursor || cursors.has(cursor))
+        throw new Error(
+          `Issue #${issue.number} reference cursor is missing or repeated`,
+        );
+      cursors.add(cursor);
+      const data = await client.execute(MORE_ISSUE_REFERENCES_QUERY, {
+        id: issue.id,
+        after: cursor,
+      });
+      const page = parseIssueReferences(
+        child(data, "node", "data").timelineItems,
+        "data.node.timelineItems",
+      );
+      if (page.totalCount !== parsed.references.totalCount)
+        throw new Error(
+          `Issue #${issue.number} references changed during collection`,
+        );
+      references.push(...page.nodes);
+      referenceState = pageState(page);
+    }
+    const uniqueReferences = dedupeByNodeId(references);
+    if (uniqueReferences.length !== parsed.references.totalCount)
+      throw new Error(`Issue #${issue.number} reference count is incomplete`);
+    issue.referencedPullRequestIds = [
+      ...new Set(
+        uniqueReferences.flatMap((reference) =>
+          reference.pullRequestId ? [reference.pullRequestId] : [],
+        ),
+      ),
+    ];
+  }
   let commentsState = parsed.pages.comments;
   while (commentsState.pageInfo.hasNextPage) {
     if (!commentsState.pageInfo.endCursor) {
@@ -2496,6 +2805,7 @@ async function finalizePullRequests(
         submittedAt: review.submittedAt,
         url: review.url,
         author: review.author,
+        commitId: review.commitId,
         inlineCommentCount,
       };
     });
@@ -2595,7 +2905,10 @@ async function hydrateIssues(
   for (const batch of chunks(references, DETAIL_BATCH_SIZE)) {
     const hydratedBatch = await retryOpenBatch(expectedState, async () => {
       const ids = batch.map((reference) => reference.id);
-      const data = await client.execute(ISSUE_DETAILS_QUERY, { ids });
+      const data = await client.execute(ISSUE_DETAILS_QUERY, {
+        ids,
+        includeReferences: expectedState === "open",
+      });
       const parsed = parseDetailBatch(data, ids, "Issue", parseIssue);
       const completed: IssueRecord[] = [];
       for (const value of parsed) {
@@ -2633,24 +2946,6 @@ export async function retryOpenBatch<T>(
   throw new OpenSetChangedError(
     `Open work batch changed during ${MAX_TRANSIENT_ATTEMPTS} consecutive hydration attempts`,
     { cause: lastChange },
-  );
-}
-
-export function sameReferenceSet(
-  left: NodeReference[],
-  right: NodeReference[],
-): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-  const rightIds = new Set(right.map((reference) => reference.id));
-  const rightVersions = new Map(
-    right.map((reference) => [reference.id, reference.openVersion]),
-  );
-  return left.every(
-    (reference) =>
-      rightIds.has(reference.id) &&
-      rightVersions.get(reference.id) === reference.openVersion,
   );
 }
 
@@ -2702,23 +2997,6 @@ export function selectDetailedMergedPullRequestIds(
     selected.add(outcome.id);
   }
   return selected;
-}
-
-export async function selectHydratedMergedPullRequestIds(
-  client: GraphqlExecutor,
-  candidates: ReadonlyArray<{
-    outcome: MergedPullRequestOutcome;
-    projectId: string;
-  }>,
-  verificationWindowFrom: Date,
-): Promise<Set<string>> {
-  return (
-    await planMergedPullRequestHydration(
-      client,
-      candidates,
-      verificationWindowFrom,
-    )
-  ).hydratedIds;
 }
 
 export interface MergedPullRequestHydrationPlan {
@@ -3702,6 +3980,6 @@ if (import.meta.main) {
     },
   });
   process.stdout.write(
-    `[slop.cash] wrote ${DEFAULT_OUTPUT_PATH} (${snapshot.leaders.length} leaders, ${snapshot.ledger.length} score events, ${snapshot.source.requestCount} GraphQL requests, ${snapshot.source.rateLimit.remaining}/${snapshot.source.rateLimit.limit} points remaining)\n`,
+    `[slop.cash] wrote ${DEFAULT_OUTPUT_PATH} (${snapshot.leaders.length} leaders, ${snapshot.ledger.length} score events, ${snapshot.source.requestCount} GitHub requests, ${snapshot.source.rateLimit.remaining}/${snapshot.source.rateLimit.limit} GraphQL points remaining)\n`,
   );
 }
