@@ -319,9 +319,12 @@ export function FundingReview({
       : [];
   const verifiedNetMinor = vaultLedger
     ? vaultLedger.netMinor
-    : projectVaultRecords.some((r) => r.state === "verified-on-chain")
+    : projectVaultRecords.length > 0
       ? commitmentVerifiedNetMinor(projectVaultRecords).toString()
       : null;
+  // A zero or negative verified net is not a deposit; never show it as done.
+  const hasVerifiedDeposit =
+    verifiedNetMinor !== null && BigInt(verifiedNetMinor) > 0n;
   async function refreshVault() {
     if (!vault) return;
     const requestContext = currentContext.current;
@@ -557,7 +560,7 @@ export function FundingReview({
       ? { tone: "waiting", text: "No reviewed vault for this month." }
       : paymentsDisabled
         ? { tone: "blocked", text: "Payments are disabled. Do not deposit." }
-        : verifiedNetMinor === null
+        : !hasVerifiedDeposit || verifiedNetMinor === null
           ? { tone: "waiting", text: "No verified deposit." }
           : {
               tone: "done",
@@ -1184,9 +1187,9 @@ export function FundingReview({
                         ? "Payments are disabled in the project manifest."
                         : "Payments are enabled in the project manifest."}
                     </li>
-                    <li data-state={verifiedNetMinor ? "done" : "open"}>
+                    <li data-state={hasVerifiedDeposit ? "done" : "open"}>
                       <strong>Deposit:</strong>{" "}
-                      {verifiedNetMinor
+                      {hasVerifiedDeposit && verifiedNetMinor
                         ? `${formatUsdc(verifiedNetMinor)} USDC in the verified ledger. This is not a live balance.`
                         : "No verified deposit."}
                     </li>
@@ -1307,8 +1310,13 @@ export function FundingReview({
                       Wait for the payout protocol review. Do not deposit into
                       the vault while payments are disabled.
                     </p>
+                  ) : !vault ? (
+                    <p>
+                      Project vault deposit verification is not available in
+                      this version. Do not submit a deposit for verification.
+                    </p>
                   ) : (
-                    <details open={!verifiedNetMinor}>
+                    <details open={!hasVerifiedDeposit}>
                       <summary>
                         Record a funding transaction for verification
                       </summary>
@@ -1341,7 +1349,7 @@ export function FundingReview({
                               status: "unverified",
                               projectId: project.id,
                               cycleId,
-                              vault: (vault ?? projectVault)?.vault ?? null,
+                              vault: vault.vault,
                               transactionId: transaction,
                             },
                             `${project.id}-${cycleId}-funding-evidence.json`,
