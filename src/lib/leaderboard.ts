@@ -4310,7 +4310,7 @@ function assertWorkItemValue(
   assertEnum(claim.status, ["claimed", "unclaimed"], `${path}.claim.status`);
   assertEnum(
     claim.source,
-    ["assignee", "label", "claim-comment", "none"],
+    ["assignee", "label", "claim-comment", "pull-request", "none"],
     `${path}.claim.source`,
   );
   if (claim.kind !== null) {
@@ -4339,6 +4339,7 @@ function assertWorkItemValue(
     (claim.status === "claimed" &&
       (claim.source === "none" || claim.kind !== expectedClaimKind)) ||
     (claim.source === "assignee" && claim.actors.length === 0) ||
+    (claim.source === "pull-request" && expectedKind !== "issue") ||
     (claim.source === "claim-comment" &&
       (claim.actors.length !== 1 || claim.claimedAt === null)) ||
     (claim.source !== "claim-comment" && claim.claimedAt !== null) ||
