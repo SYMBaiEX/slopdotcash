@@ -1826,30 +1826,6 @@ small {
   padding-inline: 0;
 }
 
-.profile-work-more {
-  margin-top: 18px;
-}
-
-.profile-work-more summary {
-  width: fit-content;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  border-bottom: 2px solid var(--orange);
-  font-size: 14px;
-  font-weight: 750;
-  list-style: none;
-}
-
-.profile-work-more summary::-webkit-details-marker {
-  display: none;
-}
-
-.profile-work-more[open] summary {
-  margin-bottom: 18px;
-}
-
 .event-points {
   min-width: 42px;
   color: var(--orange-dark);
