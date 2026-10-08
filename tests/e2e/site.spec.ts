@@ -686,8 +686,14 @@ test("renders contributor and cycle records from validated public data", {
     const expand = activity.getByRole("button", {
       name: /View all .* activity records/u,
     });
+    await expand.scrollIntoViewIfNeeded();
     await expand.focus();
     await page.keyboard.press("Enter");
+    const collapse = activity.getByRole("button", {
+      name: "Show recent activity",
+    });
+    await expect(collapse).toBeFocused();
+    await expect(collapse).toBeInViewport();
     const fullDates = await activity
       .locator("li[data-activity-date]")
       .evaluateAll((rows) =>
@@ -708,9 +714,9 @@ test("renders contributor and cycle records from validated public data", {
     await expect(
       activity.getByRole("button", { name: "Show recent activity" }),
     ).toHaveAttribute("aria-expanded", "true");
-    await activity
-      .getByRole("button", { name: "Show recent activity" })
-      .click();
+    await page.keyboard.press("Enter");
+    await expect(expand).toBeFocused();
+    await expect(expand).toBeInViewport();
     await expect(activity.locator("li[data-activity-date]")).toHaveCount(10);
   }
 

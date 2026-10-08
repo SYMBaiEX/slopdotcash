@@ -340,6 +340,17 @@ function ProfileTimeline({
   return (
     <section className="profile-timeline" aria-label="Contribution activity">
       <h2>Activity</h2>
+      {records.length > 10 ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded
+            ? "Show recent activity"
+            : `View all ${records.length} activity records`}
+        </button>
+      ) : null}
       {[...groups].map(([day, rows]) => (
         <section key={day}>
           <h3>
@@ -363,17 +374,6 @@ function ProfileTimeline({
           </ul>
         </section>
       ))}
-      {records.length > 10 ? (
-        <button
-          type="button"
-          aria-expanded={expanded}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded
-            ? "Show recent activity"
-            : `View all ${records.length} activity records`}
-        </button>
-      ) : null}
     </section>
   );
 }
