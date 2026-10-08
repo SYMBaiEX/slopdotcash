@@ -13,6 +13,7 @@ import { usePublicResource } from "./lib/use-public-resource";
 import {
   ContributorIdentity,
   ExternalLinkAnchor,
+  formatCycleMonth,
   formatDate,
   formatScore,
 } from "./Presentation";
@@ -23,6 +24,8 @@ const disclosures = import.meta.glob("../disclosures/*.json", {
 }) as Record<
   string,
   {
+    projectId: string;
+    contributionMonth: string;
     observedAt: string;
     rows: {
       actorId: string;
@@ -107,13 +110,13 @@ export function ProfileActivity({
               date: c.settledAt,
               amount: BigInt(m.paidMinor),
               href: `/cycles/${c.projectId}/${c.cycleId}`,
-              name: `${c.projectId} · ${c.cycleId}`,
+              name: `${findProject(c.projectId)?.name ?? c.projectId} · ${formatCycleMonth(c.cycleId)}`,
             })),
         )
       : null;
   const seen = new Set<string>();
   const direct = id
-    ? Object.entries(disclosures).flatMap(([path, d]) =>
+    ? Object.values(disclosures).flatMap((d) =>
         d.rows
           .filter(
             (r) => r.actorId === id && r.state === "paid-direct" && r.observed,
@@ -133,7 +136,7 @@ export function ProfileActivity({
                 date: d.observedAt,
                 amount: BigInt(o.amountMinor),
                 href: `https://solscan.io/tx/${o.signature}`,
-                name: path.split("/").pop()!,
+                name: `${findProject(d.projectId)?.name ?? d.projectId} · ${formatCycleMonth(d.contributionMonth)}`,
               },
             ];
           }),
