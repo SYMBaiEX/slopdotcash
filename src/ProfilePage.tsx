@@ -14,14 +14,9 @@ import { createGlobalLeaders } from "./lib/global-leaderboard";
 import {
   type GitHubActor,
   PROFILE_OPPORTUNITY_LIMIT,
-  type ScoreEvent,
   type ScoreOpportunity,
 } from "./lib/leaderboard";
-import {
-  findProject,
-  findProjectByRepositoryId,
-  type ProjectDefinition,
-} from "./lib/projects.mjs";
+import { findProject, type ProjectDefinition } from "./lib/projects.mjs";
 import { formatThirds } from "./lib/reviewer-leaders";
 import { useFundingReviews } from "./lib/use-funding-reviews";
 import type { DataState } from "./lib/use-snapshot";
@@ -168,14 +163,9 @@ export function ProfilePage({
       url: `https://github.com/${encodeURIComponent(login)}`,
       kind: "User",
     };
-  const events = state.snapshot.ledger.flatMap((event) => {
-    if (event.actor.id !== actor.id) return [];
-    const project = findProjectByRepositoryId(event.repository);
-    if (!project) {
-      throw new TypeError(`Score event ${event.id} has no registered project`);
-    }
-    return [{ event, project }];
-  });
+  const events = state.snapshot.ledger.filter(
+    (event) => event.actor.id === actor.id,
+  );
   const opportunities = loginOpportunities
     .filter(({ opportunity }) => opportunity.actor.id === actor.id)
     .sort(
@@ -218,8 +208,6 @@ export function ProfilePage({
   } simulated estimate${simulatedUnfunded ? ", unfunded" : ""}`;
   const historicalWallet = history.find(({ contributor }) => contributor.wallet)
     ?.contributor.wallet;
-  const featuredEvents = events.slice(0, PROFILE_EVENT_PREVIEW_LIMIT);
-  const remainingEvents = events.slice(PROFILE_EVENT_PREVIEW_LIMIT);
   return (
     <main className="shell route-main profile-page">
       <DataNotice state={state} retry={retry} />
@@ -249,6 +237,7 @@ export function ProfilePage({
       <ProfilePoints
         key={login.toLowerCase()}
         actorId={actor.id}
+        work={events}
         login={login}
         cycles={state.cycleIndex}
         summary={
@@ -424,21 +413,6 @@ export function ProfilePage({
       ) : funding.status === "ready" ? (
         <DonorFundingProfile actor={actor} records={funding.index.records} />
       ) : null}
-      <section className="section profile-section">
-        <div className="profile-section-heading">
-          <h2>Accepted work</h2>
-          <span>
-            {events.length} recent record{events.length === 1 ? "" : "s"}
-          </span>
-        </div>
-        <EventList events={featuredEvents} />
-        {remainingEvents.length > 0 ? (
-          <details className="profile-work-more">
-            <summary>View all {events.length} records</summary>
-            <EventList events={remainingEvents} />
-          </details>
-        ) : null}
-      </section>
     </main>
   );
 }
@@ -553,8 +527,6 @@ const WALLET_CLAIM_TIMEOUT_MS = 12_000;
 
 const MAX_WALLET_CLAIM_BYTES = 16 * 1024;
 
-const PROFILE_EVENT_PREVIEW_LIMIT = 10;
-
 function OpportunityList({
   opportunities,
 }: {
@@ -578,39 +550,6 @@ function OpportunityList({
             </small>
           </span>
           <ExternalLink aria-hidden="true" size={16} />
-        </ExternalLinkAnchor>
-      ))}
-    </div>
-  );
-}
-
-function EventList({
-  events,
-}: {
-  events: Array<{ event: ScoreEvent; project: ProjectDefinition }>;
-}) {
-  if (events.length === 0) return <EmptyState text="No accepted work yet." />;
-  return (
-    <div className="event-list">
-      {events.map(({ event, project }) => (
-        <ExternalLinkAnchor
-          href={event.evaluation?.decisionUrl ?? event.source.url}
-          key={event.id}
-        >
-          <span className="event-points" title={`Exact points ${event.points}`}>
-            +{formatScore(event.points)}
-          </span>
-          <span>
-            <strong>{event.source.title}</strong>
-            <small>
-              {project.name} · {event.category.replaceAll("-", " ")} ·{" "}
-              {formatDate(event.occurredAt)}
-              {event.evaluation
-                ? ` · reviewed by ${event.evaluation.reviewer}`
-                : ""}
-            </small>
-          </span>
-          <ExternalLink aria-hidden="true" size={17} />
         </ExternalLinkAnchor>
       ))}
     </div>

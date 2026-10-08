@@ -23,6 +23,7 @@ import {
 import type { CycleIndex } from "./lib/cycle-index";
 import { deploymentTier } from "./lib/deployment";
 import { requestIdentityAssertion } from "./lib/identity-flow";
+import type { ScoreEvent } from "./lib/leaderboard";
 import {
   assemblePoints,
   POINTS_NOTICE,
@@ -404,6 +405,7 @@ function Notice() {
   );
 }
 export function ProfilePoints({
+  work,
   actorId,
   summary,
   login,
@@ -412,6 +414,7 @@ export function ProfilePoints({
   showIdentity = false,
 }: {
   login: string;
+  work?: readonly ScoreEvent[];
   cycles?: CycleIndex;
   recordsLoading?: boolean;
   showIdentity?: boolean;
@@ -476,17 +479,12 @@ export function ProfilePoints({
           ? named[0]
           : undefined
       : undefined;
-  const recentAwards = new Map<string, PointsMember["awards"]>();
-  for (const award of m?.awards.slice(0, 20) ?? []) {
-    const day = award.occurredAt.slice(0, 10);
-    const awards = recentAwards.get(day) ?? [];
-    awards.push(award);
-    recentAwards.set(day, awards);
-  }
   const [copied, setCopied] = useState("");
   return (
     <section className="points-panel" aria-label="Slop Points">
       <ProfileActivity
+        work={work}
+        awards={m?.awards}
         login={login}
         actorId={resolvedActorId ?? m?.actor.id}
         census={census}
@@ -529,30 +527,6 @@ export function ProfilePoints({
             />
           ) : null}
           <p>{m?.badges.join(" · ") ?? "Welcome to Slop"}</p>
-          {recentAwards.size > 0 ? (
-            <details>
-              <summary>Recent points activity</summary>
-              {[...recentAwards].map(([day, awards]) => (
-                <section key={day}>
-                  <h3>
-                    <time dateTime={day}>{day}</time>
-                  </h3>
-                  <ul className="points-history">
-                    {awards.map((a) => (
-                      <li key={a.key}>
-                        <a href={a.sourceUrl} rel="noreferrer" target="_blank">
-                          +{a.amount.toLocaleString()} pts ·{" "}
-                          {findProject(a.projectId)?.name} ·{" "}
-                          {a.category.replaceAll("-", " ")}
-                        </a>
-                        {a.provisional ? <small>Provisional tier</small> : null}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </details>
-          ) : null}
           <button
             type="button"
             onClick={() => {

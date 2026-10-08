@@ -670,19 +670,54 @@ test("renders contributor and cycle records from validated public data", {
     page.getByText(/14-day review applies to monthly proposals/u),
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Progress" })).toHaveCount(0);
-  const acceptedRecordCount = snapshot.ledger.filter(
+  const acceptedRecords = snapshot.ledger.filter(
     (event) => event.actor.id === actor.id,
-  ).length;
-  if (acceptedRecordCount > 10) {
-    const acceptedSection = page
-      .locator(".profile-section")
-      .filter({ has: page.getByRole("heading", { name: "Accepted work" }) });
+  );
+  const activity = page.getByRole("region", { name: "Contribution activity" });
+  await expect(activity).toBeVisible();
+  const dates = await activity
+    .locator("li[data-activity-date]")
+    .evaluateAll((rows) =>
+      rows.map((row) => row.getAttribute("data-activity-date") ?? ""),
+    );
+  expect(dates).toEqual([...dates].sort((a, b) => b.localeCompare(a)));
+  if (acceptedRecords.length > 10) {
+    await expect(activity.locator("li[data-activity-date]")).toHaveCount(10);
+    const expand = activity.getByRole("button", {
+      name: /View all .* activity records/u,
+    });
+    await expand.scrollIntoViewIfNeeded();
+    await expand.focus();
+    await page.keyboard.press("Enter");
+    const collapse = activity.getByRole("button", {
+      name: "Show recent activity",
+    });
+    await expect(collapse).toBeFocused();
+    await expect(collapse).toBeInViewport();
+    const fullDates = await activity
+      .locator("li[data-activity-date]")
+      .evaluateAll((rows) =>
+        rows.map((row) => row.getAttribute("data-activity-date") ?? ""),
+      );
+    expect(fullDates.length).toBeGreaterThanOrEqual(acceptedRecords.length);
+    expect(fullDates).toEqual(
+      [...fullDates].sort((a, b) => b.localeCompare(a)),
+    );
+    const latest = [...acceptedRecords].sort((a, b) =>
+      b.occurredAt.localeCompare(a.occurredAt),
+    )[0];
     await expect(
-      acceptedSection.locator(":scope > .event-list > a"),
-    ).toHaveCount(10);
-    await expect(
-      acceptedSection.getByText(`View all ${acceptedRecordCount} records`),
+      activity
+        .getByRole("link", { name: latest.source.title, exact: true })
+        .first(),
     ).toBeVisible();
+    await expect(
+      activity.getByRole("button", { name: "Show recent activity" }),
+    ).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Enter");
+    await expect(expand).toBeFocused();
+    await expect(expand).toBeInViewport();
+    await expect(activity.locator("li[data-activity-date]")).toHaveCount(10);
   }
 
   const archived = cycles.cycles.find((cycle) =>

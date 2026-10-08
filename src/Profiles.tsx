@@ -1,13 +1,22 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { fetchWithDeadline, readBoundedJson } from "./lib/browser-json";
 import type { CycleIndex } from "./lib/cycle-index";
+import type { ScoreEvent } from "./lib/leaderboard";
+import { type PointsMember, pointKey } from "./lib/points";
 import {
   assertProfiles,
   type ProfileIndex,
   profileCounts,
 } from "./lib/profiles";
+import { findProject, findProjectByRepositoryId } from "./lib/projects.mjs";
 import { usePublicResource } from "./lib/use-public-resource";
-import { ContributorIdentity } from "./Presentation";
+import {
+  ContributorIdentity,
+  ExternalLinkAnchor,
+  formatCycleMonth,
+  formatDate,
+  formatScore,
+} from "./Presentation";
 
 const disclosures = import.meta.glob("../disclosures/*.json", {
   eager: true,
@@ -15,6 +24,9 @@ const disclosures = import.meta.glob("../disclosures/*.json", {
 }) as Record<
   string,
   {
+    projectId: string;
+    contributionMonth: string;
+    observedAt: string;
     rows: {
       actorId: string;
       state: string;
@@ -49,6 +61,8 @@ function dollars(n: bigint) {
   return `$${(n / 1000000n).toLocaleString("en-US")}.${(n % 1000000n).toString().padStart(6, "0").replace(/0+$/, "").padEnd(2, "0")}`;
 }
 export function ProfileActivity({
+  work,
+  awards,
   login,
   actorId,
   showIdentity = false,
@@ -58,6 +72,8 @@ export function ProfileActivity({
   summary,
 }: {
   login: string;
+  work?: readonly ScoreEvent[];
+  awards?: PointsMember["awards"];
   actorId?: string;
   showIdentity?: boolean;
   cycles?: CycleIndex;
@@ -91,15 +107,16 @@ export function ProfileActivity({
           c.contributors
             .filter((m) => m.actor.id === id && m.state === "paid")
             .map((m) => ({
+              date: c.settledAt,
               amount: BigInt(m.paidMinor),
               href: `/cycles/${c.projectId}/${c.cycleId}`,
-              name: `${c.projectId} · ${c.cycleId}`,
+              name: `${findProject(c.projectId)?.name ?? c.projectId} · ${formatCycleMonth(c.cycleId)}`,
             })),
         )
       : null;
   const seen = new Set<string>();
   const direct = id
-    ? Object.entries(disclosures).flatMap(([path, d]) =>
+    ? Object.values(disclosures).flatMap((d) =>
         d.rows
           .filter(
             (r) => r.actorId === id && r.state === "paid-direct" && r.observed,
@@ -116,9 +133,10 @@ export function ProfileActivity({
             seen.add(o.signature);
             return [
               {
+                date: d.observedAt,
                 amount: BigInt(o.amountMinor),
                 href: `https://solscan.io/tx/${o.signature}`,
-                name: path.split("/").pop()!,
+                name: `${findProject(d.projectId)?.name ?? d.projectId} · ${formatCycleMonth(d.contributionMonth)}`,
               },
             ];
           }),
@@ -225,20 +243,137 @@ export function ProfileActivity({
         Direct payments come from published disclosures outside Slop’s verified
         settlement process.
       </p>
-      {payments?.length || direct.length ? (
-        <details>
-          <summary>Payment records</summary>
-          <ul>
-            {[...(payments ?? []), ...direct].map((r) => (
-              <li key={r.href}>
-                <a href={r.href} target="_blank" rel="noreferrer">
-                  {dollars(r.amount)} USDC · {r.name}
-                </a>
+      <ProfileTimeline
+        work={work}
+        awards={awards}
+        payments={payments ?? []}
+        direct={direct}
+      />
+    </section>
+  );
+}
+
+function ProfileTimeline({
+  work = [],
+  awards = [],
+  payments,
+  direct,
+}: {
+  work?: readonly ScoreEvent[];
+  awards?: PointsMember["awards"];
+  payments: Array<{
+    date: string | null;
+    amount: bigint;
+    href: string;
+    name: string;
+  }>;
+  direct: Array<{ date: string; amount: bigint; href: string; name: string }>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const unmatchedAwards = new Map(awards.map((award) => [award.key, award]));
+  const records = [
+    ...work.map((event) => {
+      const project = findProjectByRepositoryId(event.repository);
+      if (!project)
+        throw new TypeError(
+          `Score event ${event.id} has no registered project`,
+        );
+      const candidate = unmatchedAwards.get(
+        pointKey(
+          project.id,
+          event.actor.id,
+          event.category,
+          event.category === "evidence" ? event.id : event.source.id,
+        ),
+      );
+      const award =
+        candidate?.sourceUrl === event.source.url &&
+        candidate.occurredAt === new Date(event.occurredAt).toISOString()
+          ? candidate
+          : undefined;
+      if (award) unmatchedAwards.delete(award.key);
+      return {
+        key: `work:${event.id}`,
+        date: event.occurredAt,
+        href: event.evaluation?.decisionUrl ?? event.source.url,
+        title: event.source.title,
+        detail: `${project.name} · ${event.category.replaceAll("-", " ")}${event.evaluation ? ` · reviewed by ${event.evaluation.reviewer}` : ""}`,
+        amount: `+${formatScore(event.points)} Slop Score${award ? ` · +${award.amount.toLocaleString()} Points${award.provisional ? " · Provisional tier" : ""}` : ""}`,
+      };
+    }),
+    ...[...unmatchedAwards.values()].map((award) => ({
+      key: `points:${award.key}`,
+      date: award.occurredAt,
+      href: award.sourceUrl,
+      title: award.category.replaceAll("-", " "),
+      detail: `${findProject(award.projectId)?.name ?? award.projectId}${award.provisional ? " · Provisional tier" : ""}`,
+      amount: `+${award.amount.toLocaleString()} Points`,
+    })),
+    ...payments.map((payment) => ({
+      key: `paid:${payment.href}`,
+      date: payment.date,
+      href: payment.href,
+      title: payment.name,
+      detail: "Verified settlement",
+      amount: `${dollars(payment.amount)} USDC paid`,
+    })),
+    ...direct.map((payment) => ({
+      key: `reported:${payment.href}`,
+      date: payment.date,
+      href: payment.href,
+      title: payment.name,
+      detail: "Reported outside Slop settlement · grouped by disclosure date",
+      amount: `${dollars(payment.amount)} USDC reported`,
+    })),
+  ].sort(
+    (a, b) =>
+      (b.date ?? "").localeCompare(a.date ?? "") || a.key.localeCompare(b.key),
+  );
+  if (records.length === 0) return null;
+  const groups = new Map<string, typeof records>();
+  for (const record of expanded ? records : records.slice(0, 10)) {
+    const day = record.date?.slice(0, 10) ?? "";
+    const group = groups.get(day) ?? [];
+    group.push(record);
+    groups.set(day, group);
+  }
+  return (
+    <section className="profile-timeline" aria-label="Contribution activity">
+      <h2>Activity</h2>
+      {records.length > 10 ? (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded
+            ? "Show recent activity"
+            : `View all ${records.length} activity records`}
+        </button>
+      ) : null}
+      {[...groups].map(([day, rows]) => (
+        <section key={day}>
+          <h3>
+            {day ? (
+              <time dateTime={day}>{formatDate(day)}</time>
+            ) : (
+              "Date unavailable"
+            )}
+          </h3>
+          <ul className="points-history">
+            {rows.map((row) => (
+              <li key={row.key} data-activity-date={row.date ?? ""}>
+                <ExternalLinkAnchor href={row.href}>
+                  <strong>{row.title}</strong>
+                </ExternalLinkAnchor>
+                <small>
+                  {row.amount} · {row.detail}
+                </small>
               </li>
             ))}
           </ul>
-        </details>
-      ) : null}
+        </section>
+      ))}
     </section>
   );
 }
