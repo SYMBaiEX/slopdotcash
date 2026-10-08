@@ -117,6 +117,8 @@ textarea:focus-visible {
   margin: 4px 0 0;
   font-family: var(--brand-font-data);
   font-variant-numeric: tabular-nums;
+  /* Amounts wrap only between words, never inside a number. */
+  overflow-wrap: normal;
 }
 .worked-example,
 .custody-proof {
@@ -633,7 +635,9 @@ textarea:focus-visible {
 
 .data-notice button {
   display: inline-flex;
+  flex: none;
   align-items: center;
+  white-space: nowrap;
   gap: 5px;
   margin-left: 8px;
   padding: 0;
@@ -3379,6 +3383,10 @@ small {
 .points-table td:last-child {
   text-align: right;
   white-space: nowrap;
+}
+/* Scores and amounts wrap only between words, never inside a number. */
+.points-table td.points-value {
+  overflow-wrap: normal;
 }
 .points-history {
   padding-left: 1.25rem;

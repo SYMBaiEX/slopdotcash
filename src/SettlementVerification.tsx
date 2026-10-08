@@ -56,10 +56,13 @@ function Address({ label, value }: { label: string; value: string }) {
   );
 }
 
-function useBindings(): Bindings {
+function useBindings(): [Bindings, () => void] {
+  const [attempt, setAttempt] = useState(0);
   const [bindings, setBindings] = useState<Bindings>({ status: "loading" });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Retry reloads the published index.
   useEffect(() => {
     let active = true;
+    setBindings({ status: "loading" });
     const controller = new AbortController();
     void (async () => {
       const response = await fetch("/data/squads-executions.json", {
@@ -90,17 +93,26 @@ function useBindings(): Bindings {
       active = false;
       controller.abort();
     };
-  }, []);
-  return bindings;
+  }, [attempt]);
+  return [bindings, () => setAttempt((value) => value + 1)];
 }
 
-function BindingState({ bindings }: { bindings: Bindings }): ReactNode {
+function BindingState({
+  bindings,
+  retry,
+}: {
+  bindings: Bindings;
+  retry: () => void;
+}): ReactNode {
   if (bindings.status === "loading")
     return <p role="status">Loading reviewed vault proposals…</p>;
   if (bindings.status === "failed")
     return (
-      <p role="status">
-        Reviewed vault proposals could not be loaded: {bindings.reason}
+      <p role="alert">
+        Reviewed vault proposals could not be loaded: {bindings.reason}{" "}
+        <button type="button" onClick={retry}>
+          Retry
+        </button>
       </p>
     );
   if (bindings.status === "empty")
@@ -135,7 +147,7 @@ export function SettlementVerification() {
   const [multisig, setMultisig] = useState("");
   const [vaultIndex, setVaultIndex] = useState("0");
   const [vault, setVault] = useState<Vault>({ status: "idle" });
-  const bindings = useBindings();
+  const [bindings, retryBindings] = useBindings();
 
   const derive = () => {
     const candidate = address.trim();
@@ -224,7 +236,7 @@ export function SettlementVerification() {
         </p>
 
         <h2>Bound proposals today</h2>
-        <BindingState bindings={bindings} />
+        <BindingState bindings={bindings} retry={retryBindings} />
         <details>
           <summary>Advanced verification</summary>
           <h2>What the verifier checks</h2>

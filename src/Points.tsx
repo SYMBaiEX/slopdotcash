@@ -408,10 +408,12 @@ export function ProfilePoints({
   summary,
   login,
   cycles,
+  recordsLoading = false,
   showIdentity = false,
 }: {
   login: string;
   cycles?: CycleIndex;
+  recordsLoading?: boolean;
   showIdentity?: boolean;
   summary?: ReactNode;
   actorId?: string;
@@ -489,6 +491,7 @@ export function ProfilePoints({
         actorId={resolvedActorId ?? m?.actor.id}
         census={census}
         cycles={cycles}
+        recordsLoading={recordsLoading}
         showIdentity={showIdentity}
         summary={
           <>

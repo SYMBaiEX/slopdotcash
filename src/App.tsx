@@ -11,6 +11,7 @@ import {
   FolderGit2,
   GitPullRequest,
   Plus,
+  RotateCcw,
   ShieldCheck,
   Terminal,
 } from "lucide-react";
@@ -528,7 +529,7 @@ function bootstrapAgentPrompt(): string {
 }
 
 function HomePage() {
-  const funding = useFundingIndex();
+  const [funding] = useFundingIndex();
   const promotedProjects = homeProjects();
   const featuredProjects = promotedProjects.filter(
     (project) => project.listingTier === "featured",
@@ -1256,7 +1257,7 @@ function ProjectFundingPage({
   project: ProjectDefinition;
   state: DataState;
 }) {
-  const funding = useFundingIndex();
+  const [funding, retryFunding] = useFundingIndex();
   const [view, setView] = useState<FundingView>(fundingViewFromHash);
   const [payoutsOpened, setPayoutsOpened] = useState(() => view === "payouts");
   useEffect(() => {
@@ -1405,7 +1406,10 @@ function ProjectFundingPage({
         ) : funding.status === "error" ? (
           <div className="data-notice data-error" role="alert">
             <CircleAlert aria-hidden="true" size={18} />
-            Funding records unavailable: {funding.message}
+            <span>Funding records unavailable: {funding.message}</span>
+            <button onClick={retryFunding} type="button">
+              <RotateCcw aria-hidden="true" size={15} /> Retry
+            </button>
           </div>
         ) : records.length === 0 ? (
           <EmptyState text="No reviewed public funding transactions have been published yet." />
