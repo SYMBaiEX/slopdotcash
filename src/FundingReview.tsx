@@ -1199,6 +1199,13 @@ export function FundingReview({
                         month. The reviewed Sablier instrument on{" "}
                         {instrument.network} stays separate.
                       </p>
+                    ) : project.reward.chain !== "solana" ? (
+                      <p>
+                        This project settles on {project.reward.chain}. The
+                        Squads vault intake on this page applies to Solana
+                        projects only. A reviewed project vault on this network
+                        is required before any deposit.
+                      </p>
                     ) : (
                       <>
                         <p>
