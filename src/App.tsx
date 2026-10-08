@@ -2216,7 +2216,8 @@ function HowItWorksPage() {
             <small className="payment-gate">Finalized evidence</small>
             <strong>Paid</strong>
             <span>
-              Finalized Solana evidence reconciles the exact transfers and fee.
+              Finalized on-chain evidence reconciles the exact transfers and
+              fee.
             </span>
           </li>
         </ol>
@@ -2342,9 +2343,10 @@ function HowItWorksPage() {
             Register a public Base or Solana address in{" "}
             <Link href="/account#wallets">Account wallets</Link> with your
             GitHub account. No wallet connection or signing is needed. Payments
-            are USDC on Solana, sent by the project creator, never by Slop. A
-            wallet must be registered before a month freezes to apply to that
-            month. Without one, your row stays unclaimed and carries forward.
+            are USDC on the project's settlement network, Base or Solana, sent
+            by the project creator, never by Slop. A wallet must be registered
+            before a month freezes to apply to that month. Without one, your row
+            stays unclaimed and carries forward.
           </p>
         </details>
         <details>
