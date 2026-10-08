@@ -1,4 +1,9 @@
-import { ChevronRight, CircleAlert, ExternalLink } from "lucide-react";
+import {
+  ChevronRight,
+  CircleAlert,
+  ExternalLink,
+  RotateCcw,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { DonorFundingProfile, useFundingIndex } from "./FundingRecords";
 import { Link } from "./Link";
@@ -44,7 +49,7 @@ export function ProfilePage({
   state: DataState;
   retry: () => void;
 }) {
-  const funding = useFundingIndex();
+  const [funding, retryFunding] = useFundingIndex();
   const [fundingReviews] = useFundingReviews(true);
   const currentWallet = useCurrentWallet(state, login);
   if (state.status !== "ready")
@@ -409,8 +414,11 @@ export function ProfilePage({
       {funding.status === "error" ? (
         <section className="section profile-section">
           <div className="data-notice data-error" role="alert">
-            <CircleAlert aria-hidden="true" size={18} /> Public donor records
-            unavailable: {funding.message}
+            <CircleAlert aria-hidden="true" size={18} />
+            <span>Public donor records unavailable: {funding.message}</span>
+            <button onClick={retryFunding} type="button">
+              <RotateCcw aria-hidden="true" size={15} /> Retry
+            </button>
           </div>
         </section>
       ) : funding.status === "ready" ? (

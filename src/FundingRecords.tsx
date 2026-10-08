@@ -38,9 +38,8 @@ async function loadFundingIndex(signal: AbortSignal) {
 export type FundingDataState = PublicResourceState<{
   index: ProjectFundingIndex;
 }>;
-export function useFundingIndex(): FundingDataState {
-  const [state] = usePublicResource(true, loadFundingIndex, "Invalid data");
-  return state;
+export function useFundingIndex(): [FundingDataState, () => void] {
+  return usePublicResource(true, loadFundingIndex, "Invalid data");
 }
 
 export function DonorFundingProfile({
