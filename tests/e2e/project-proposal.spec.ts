@@ -104,6 +104,22 @@ test("drafts a project through the setup steps and hands it to GitHub", async ({
   await expect(facts).toContainText("@example · organization");
   await expect(facts).toContainText("MIT · LICENSE at ccccccc");
   await expect(page.getByLabel("Integration branch")).toHaveValue("trunk");
+  // Repository facts must not survive a different repository, including after
+  // restoring a saved draft. The lookup response remains an explicit fixture.
+  await page.reload();
+  await page
+    .getByLabel("Public GitHub repository")
+    .fill("example/another-repository");
+  await expect(facts).not.toContainText("123456789");
+  await expect(facts).not.toContainText("MIT · LICENSE at ccccccc");
+  await expect(page.getByLabel("Integration branch")).toHaveValue("main");
+  await page
+    .getByLabel("Public GitHub repository")
+    .fill("example/open-protein");
+  await page.getByRole("button", { name: "Look up on GitHub" }).click();
+  await expect(page.locator(".lookup-status")).toContainText(
+    "Found example/open-protein",
+  );
   await page.getByRole("button", { name: "Next: Contribution rules" }).click();
   await page.getByRole("button", { name: "Next: Rewards" }).click();
   const summary = page.locator(".form-error-summary");

@@ -432,8 +432,6 @@ export default function ProjectProposalPage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const lookupController = useRef<AbortController | null>(null);
-  // The repository whose immutable facts the last lookup filled in.
-  const lookedUpRepository = useRef<string | null>(null);
   const copy = useCopyStatus();
   useEffect(() => {
     try {
@@ -448,12 +446,8 @@ export default function ProjectProposalPage() {
     if (field === "repository") {
       lookupController.current?.abort();
       setLookup({ state: "idle", message: "" });
-      if (
-        lookedUpRepository.current !== null &&
-        lookedUpRepository.current !== value
-      ) {
+      if (proposal.repository !== value) {
         // Facts from another repository must never pair with this name.
-        lookedUpRepository.current = null;
         setProposal((current) => ({
           ...current,
           repository: value,
@@ -738,7 +732,6 @@ ${manifestText}`;
     try {
       const facts = await lookupGitHubRepository(repository, controller.signal);
       if (controller.signal.aborted) return;
-      lookedUpRepository.current = facts.repository;
       setProposal((current) => ({
         ...current,
         repository: facts.repository,
@@ -775,7 +768,6 @@ ${manifestText}`;
   }
   function clearDraft() {
     lookupController.current?.abort();
-    lookedUpRepository.current = null;
     setProposal(EMPTY_PROPOSAL);
     setAttempted(SETUP_STEPS.map(() => false));
     setLookup({ state: "idle", message: "" });
