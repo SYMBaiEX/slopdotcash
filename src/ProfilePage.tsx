@@ -53,7 +53,8 @@ export function ProfilePage({
         <ProfilePoints
           key={login.toLowerCase()}
           login={login}
-          showIdentity={state.status !== "loading"}
+          recordsLoading={state.status === "loading"}
+          showIdentity
         />
         <DataNotice state={state} retry={retry} />
       </main>
@@ -127,7 +128,16 @@ export function ProfilePage({
     if (fundingReviews.status === "loading")
       return (
         <main className="shell route-main" aria-busy="true">
-          <p className="data-notice">Checking frozen months…</p>
+          <ContributorIdentity
+            actor={{
+              login,
+              avatarUrl: `https://avatars.githubusercontent.com/${encodeURIComponent(login)}?size=160`,
+              url: `https://github.com/${encodeURIComponent(login)}`,
+            }}
+          />
+          <p className="data-notice" role="status">
+            Checking frozen months…
+          </p>
         </main>
       );
     return (
