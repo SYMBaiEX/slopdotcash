@@ -635,7 +635,9 @@ textarea:focus-visible {
 
 .data-notice button {
   display: inline-flex;
+  flex: none;
   align-items: center;
+  white-space: nowrap;
   gap: 5px;
   margin-left: 8px;
   padding: 0;
