@@ -4315,3 +4315,16 @@ small {
 .recipient-table td:first-of-type {
   white-space: nowrap;
 }
+
+.issue-outcome-counts {
+  max-width: 32rem;
+}
+.issue-outcome-counts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.issue-outcome-counts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

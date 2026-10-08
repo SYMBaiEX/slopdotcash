@@ -154,11 +154,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          profile_origin="https://slop.cash"
+          if [ "$VITE_SLOP_ENVIRONMENT" = "staging" ]; then
+            profile_origin="https://staging.slop.cash"
+          fi
+          previous_profiles="$RUNNER_TEMP/slop-previous-profiles.json"
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+            --connect-timeout 10 --max-time 60 --max-filesize 8388608 \
+            "$profile_origin/data/profiles.json" --output "$previous_profiles"
           bun run leaderboard:generate
-          # The census crawls every upstream PR and fails closed if the
-          # inventory shrinks mid-crawl. One retry covers a single race.
+          # Preserve previously observed issue history, including records
+          # no longer accessible. Both source inventories must reconcile.
           for attempt in 1 2; do
-            if bun run profiles:generate; then
+            if bun run profiles:generate --previous "$previous_profiles"; then
               break
             fi
             if [ "$attempt" -eq 2 ]; then

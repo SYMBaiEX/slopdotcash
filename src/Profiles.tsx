@@ -7,8 +7,10 @@ import {
   assertProfiles,
   type ProfileIndex,
   profileCounts,
+  profileIssueOutcomes,
 } from "./lib/profiles";
 import { findProject, findProjectByRepositoryId } from "./lib/projects.mjs";
+import { TARGET_REPOSITORIES } from "./lib/repositories.mjs";
 import { usePublicResource } from "./lib/use-public-resource";
 import {
   ContributorIdentity,
@@ -214,6 +216,9 @@ export function ProfileActivity({
               ? " · Stale: refresh pending"
               : ""}
           </p>
+          {id ? (
+            <IssueOutcomes key={id} index={state.index} actorId={id} />
+          ) : null}
           {p ? (
             <details>
               <summary>PR counts by repository</summary>
@@ -375,5 +380,214 @@ function ProfileTimeline({
         </section>
       ))}
     </section>
+  );
+}
+
+function IssueOutcomes({
+  index,
+  actorId,
+}: {
+  index: ProfileIndex;
+  actorId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [repository, setRepository] = useState("");
+  const [period, setPeriod] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const issues =
+    index.issues?.items.filter((issue) => issue.authorId === actorId) ?? [];
+  const repositories = [
+    ...new Set(issues.map((issue) => issue.repository)),
+  ].sort();
+  const periods = [
+    ...new Set(
+      issues
+        .flatMap((issue) => [
+          issue.createdAt,
+          ...issue.events.map((event) => event.occurredAt),
+        ])
+        .map((date) => new Date(date).toISOString().slice(0, 7)),
+    ),
+  ]
+    .sort()
+    .reverse();
+  const counts = profileIssueOutcomes(
+    issues,
+    actorId,
+    repository || undefined,
+    period || undefined,
+  );
+  const denominator = counts.completed + counts.notPlanned;
+  const history = issues
+    .filter((issue) => !repository || issue.repository === repository)
+    .flatMap((issue) => [
+      {
+        issue,
+        id: `opened:${issue.id}`,
+        date: issue.createdAt,
+        label: "Opened",
+      },
+      ...issue.events.map((event) => ({
+        issue,
+        id: event.id,
+        date: event.occurredAt,
+        label:
+          event.kind === "closed"
+            ? event.reason === "COMPLETED"
+              ? "Completed"
+              : event.reason === "NOT_PLANNED"
+                ? "Not planned"
+                : event.reason === "DUPLICATE"
+                  ? "Closed as duplicate"
+                  : "Closed · reason unknown"
+            : event.kind === "reopened"
+              ? "Reopened"
+              : event.kind === "transferred"
+                ? "Transferred"
+                : event.relatedIssueId === issue.id
+                  ? event.kind === "duplicate"
+                    ? "Another issue marked as duplicate"
+                    : "Duplicate reference removed"
+                  : event.kind === "duplicate"
+                    ? "Marked as duplicate"
+                    : "Duplicate mark removed",
+      })),
+    ])
+    .filter(
+      (event) =>
+        !period || new Date(event.date).toISOString().slice(0, 7) === period,
+    )
+    .sort(
+      (left, right) =>
+        Date.parse(right.date) - Date.parse(left.date) ||
+        left.id.localeCompare(right.id),
+    );
+  return (
+    <details onToggle={(event) => setOpen(event.currentTarget.open)}>
+      <summary>Issue outcomes</summary>
+      {open ? (
+        index.issues ? (
+          <>
+            <label>
+              Repository
+              <select
+                value={repository}
+                onChange={(event) => setRepository(event.target.value)}
+              >
+                <option value="">All tracked repositories</option>
+                {repositories.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Period (UTC)
+              <select
+                value={period}
+                onChange={(event) => setPeriod(event.target.value)}
+              >
+                <option value="">Recorded history</option>
+                {periods.map((month) => (
+                  <option key={month} value={month}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p>
+              {denominator
+                ? `${counts.completed.toLocaleString()} completed : ${counts.notPlanned.toLocaleString()} not planned · ${(counts.completed / denominator).toLocaleString(undefined, { style: "percent", maximumFractionDigits: 1 })} completion rate`
+                : "Not enough data for a completion rate."}
+            </p>
+            <dl className="issue-outcome-counts">
+              {(
+                [
+                  ["Open", counts.open],
+                  ["Reopened", counts.reopened],
+                  ["Completed", counts.completed],
+                  ["Not planned", counts.notPlanned],
+                  ["Duplicate", counts.duplicate],
+                  ["Unknown close reason", counts.unknown],
+                  ["Source unavailable", counts.unavailable],
+                ] as const
+              ).map(([label, count]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{count.toLocaleString()}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="points-meta">
+              {period
+                ? "Final state at month end for issues opened or transitioned in this month."
+                : "Latest recorded GitHub state."}{" "}
+              Duplicate, unknown and unavailable outcomes are excluded from the
+              rate.
+            </p>
+            {counts.transferred ? (
+              <p>
+                {counts.transferred.toLocaleString()} issues have a transfer in
+                their recorded history.
+              </p>
+            ) : null}
+            {counts.corrected ? (
+              <p>
+                {counts.corrected.toLocaleString()} histories include a later
+                source correction.
+              </p>
+            ) : null}
+            <details
+              onToggle={(event) => setHistoryOpen(event.currentTarget.open)}
+            >
+              <summary>
+                Issue history · {history.length.toLocaleString()} records
+              </summary>
+              {historyOpen ? (
+                <ul className="points-history">
+                  {history.map((record) => {
+                    const repository = TARGET_REPOSITORIES.find(
+                      (candidate) => candidate.id === record.issue.repository,
+                    );
+                    if (!repository)
+                      throw new TypeError("Issue repository is not registered");
+                    return (
+                      <li key={record.id}>
+                        <time dateTime={record.date}>
+                          {new Date(record.date).toLocaleString(undefined, {
+                            timeZone: "UTC",
+                          })}{" "}
+                          UTC
+                        </time>
+                        {" · "}
+                        <a
+                          href={`https://github.com/${repository.owner}/${repository.name}/issues/${record.issue.number}`}
+                        >
+                          {record.issue.repository}#{record.issue.number}
+                        </a>
+                        {" · "}
+                        {record.label}
+                        {record.issue.unavailableSince
+                          ? " · Source now unavailable"
+                          : ""}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </details>
+            <p className="points-meta">
+              Coverage: accessible issues in the tracked repositories, plus
+              retained records first captured from{" "}
+              {new Date(index.issues.firstObservedAt).toLocaleDateString()}.
+              Records deleted before capture may be absent.
+            </p>
+          </>
+        ) : (
+          <p>Issue history is unavailable in this census.</p>
+        )
+      ) : null}
+    </details>
   );
 }
