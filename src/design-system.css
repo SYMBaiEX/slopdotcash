@@ -1847,7 +1847,7 @@ main h2,
 
 /* Typography-led hero, inspired by independent type specimens. */
 .hero-poster.hero.shell {
-  padding-block: 40px 28px;
+  padding-block: 64px 52px;
 }
 .hero-poster.hero.shell h1 {
   display: flex;
@@ -1900,7 +1900,7 @@ main h2,
 }
 @media (max-width: 680px) {
   .hero-poster.hero.shell {
-    padding-block: 28px 24px;
+    padding-block: 44px 40px;
   }
   .hero-poster.hero.shell h1 {
     font-size: clamp(42px, 12vw, 80px);
@@ -1933,7 +1933,7 @@ main h2,
 }
 
 .project-carousel .carousel-project-card {
-  width: 224px;
+  width: 200px;
 }
 .carousel-project-card .project-card-heading {
   padding: 14px 14px 0;
