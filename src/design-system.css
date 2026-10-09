@@ -2680,3 +2680,201 @@ main h2,
     padding-top: 12px;
   }
 }
+
+/* Contributor profiles and the shared standings hub. */
+.profile-page .breadcrumb {
+  margin: 0 0 20px;
+}
+.profile-page .profile-hero {
+  padding: 20px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border-radius: 4px;
+  align-items: flex-start;
+  gap: 20px;
+}
+.profile-page .profile-hero .avatar-large {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+}
+.profile-page .profile-identity {
+  min-width: 0;
+  flex: 1;
+}
+.profile-page .profile-hero h1 {
+  font-size: clamp(26px, 3.5vw, 44px);
+  overflow-wrap: anywhere;
+}
+.profile-page .profile-links {
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.profile-wallet-details {
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 100%;
+}
+.profile-wallet-details summary {
+  cursor: pointer;
+}
+.profile-wallet-details > a,
+.profile-wallet-details > span {
+  display: block;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.profile-page .points-panel {
+  padding: 24px;
+  border: 0;
+  background: var(--surface);
+  border-radius: 4px;
+}
+.profile-page .profile-totals {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px 20px;
+  margin: 20px 0 24px;
+}
+.profile-page .profile-totals div {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+.profile-page .profile-totals strong {
+  font-family: var(--brand-font-data);
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+.profile-page .profile-totals span {
+  margin-top: 7px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.profile-page .profile-estimate-note {
+  margin: 16px 0 0;
+  max-width: 80ch;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.profile-page .profile-section {
+  padding-block: 32px 0;
+}
+.profile-page .profile-projects {
+  border: 0;
+  border-radius: 4px;
+}
+.profile-page .profile-project-block {
+  border: 0;
+}
+.profile-page .profile-project-block > a {
+  padding: 16px 20px;
+}
+.contributors-page-heading {
+  margin-bottom: 24px;
+}
+.contributors-page-heading h1 {
+  margin: 0 0 12px;
+  font-size: clamp(32px, 4vw, 52px);
+}
+.contributors-page-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+.contributors-page > .points-panel {
+  border: 0;
+  padding: 24px 0;
+  background: transparent;
+}
+.contributors-page .standings-filter-bar {
+  padding: 16px;
+  gap: 12px;
+  border-radius: 4px;
+}
+.contributors-page .points-table td {
+  padding-block: 14px;
+}
+.contributors-page .points-table th {
+  padding-block: 12px;
+  font-size: 12px;
+}
+@media (max-width: 680px) {
+  .profile-page .profile-hero {
+    padding: 16px;
+    gap: 14px;
+  }
+  .profile-page .profile-hero .avatar-large {
+    width: 64px;
+    height: 64px;
+  }
+  .profile-page .profile-hero h1 {
+    font-size: 26px;
+  }
+  .profile-page .points-panel {
+    padding: 16px;
+  }
+  .profile-page .profile-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+  .profile-page .profile-totals strong {
+    font-size: 22px;
+  }
+  .profile-page .profile-project-block > a {
+    padding: 14px;
+    gap: 12px;
+  }
+  .contributors-page .standings-filter-bar {
+    padding: 12px;
+  }
+  .contributors-page > .points-panel {
+    padding-block: 20px;
+  }
+}
+
+.contributors-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.contributors-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--muted);
+}
+.contributors-navigation a:hover {
+  color: var(--orange);
+}
+.profile-page > .data-notice {
+  margin: 0 0 20px;
+  font-size: 12px;
+}
+@media (max-width: 680px) {
+  .contributors-page .standings-filter-bar select,
+  .contributors-page .standings-filter-bar input,
+  .contributors-page
+    .standings-filter-bar
+    .standings-search
+    input[type="search"] {
+    min-height: 44px;
+    height: 44px;
+  }
+  .contributors-navigation {
+    gap: 4px 20px;
+  }
+  .contributors-navigation a {
+    min-height: 44px;
+  }
+}

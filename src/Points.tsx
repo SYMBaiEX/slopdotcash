@@ -814,16 +814,23 @@ const POINT_CATEGORIES: readonly (readonly [string, string, boolean])[] = [
 ];
 export function PointsPage() {
   return (
-    <main className="shell route-main points-page">
-      <h1>Slop Points</h1>
-      <p>{POINTS_NOTICE}</p>
-      <p>
-        <a href="/account">Account settings</a> ·{" "}
-        <a href="#people">Find people</a> · <a href="#rules">Ways to earn</a>
-      </p>
-      <ContributorStandings />
+    <main className="shell route-main points-page contributors-page">
+      <header className="contributors-page-heading">
+        <h1>Contributors</h1>
+        <p>Accepted work, participation, and verified payments.</p>
+      </header>
+      <nav
+        className="contributors-navigation"
+        aria-label="Contributor navigation"
+      >
+        <a href="#people">Find people</a>
+        <a href="#rules">Points rules</a>
+        <a href="/account">Account settings</a>
+      </nav>
+      <ContributorStandings title="Standings" />
       <section className="points-panel" id="rules">
-        <h2>Ways to earn</h2>
+        <h2>Ways to earn points</h2>
+        <p className="points-meta">{POINTS_NOTICE}</p>
         <ul aria-label="Point categories" className="points-rules">
           {POINT_CATEGORIES.map(([activity, points, ranked]) => (
             <li key={activity}>
