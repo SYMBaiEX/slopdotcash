@@ -315,11 +315,22 @@ jobs:
           ./node_modules/.bin/wrangler d1 migrations apply slop-staging --remote --config wrangler.staging.toml
           ./node_modules/.bin/wrangler deploy --config workers/identity/wrangler.staging.toml
           node scripts/configure-staging-secrets.mjs
-          ./node_modules/.bin/wrangler pages deploy --config wrangler.staging.toml \
-            --project-name=slop-staging \
-            --branch=development \
-            --commit-hash="$GITHUB_SHA" \
-            --commit-dirty=false
+          # Pages requires the standard config filename in its working directory.
+          # Keep the production config untouched and publish the verified bundle
+          # with the staging config from this exact source revision.
+          publish_dir="$(mktemp -d "$RUNNER_TEMP/slop-staging-pages.XXXXXX")"
+          git archive "$GITHUB_SHA" | tar -x -C "$publish_dir"
+          cp wrangler.staging.toml "$publish_dir/wrangler.toml"
+          cp -R dist "$publish_dir/dist"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$publish_dir/node_modules"
+          (
+            cd "$publish_dir"
+            ./node_modules/.bin/wrangler pages deploy \
+              --project-name=slop-staging \
+              --branch=development \
+              --commit-hash="$GITHUB_SHA" \
+              --commit-dirty=false
+          )
           node scripts/verify-staging-deployment.mjs "$GITHUB_SHA" "$started_at"
           node scripts/verify-staging-backend.mjs
 

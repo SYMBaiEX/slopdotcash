@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { deploymentOrigins, deploymentTier } from "../../src/lib/deployment";
@@ -8,7 +9,6 @@ const { site } = deploymentOrigins(
 
 test("social membership shows connection points, respects privacy and survives disconnect", async ({
   page,
-  baseURL,
 }, info) => {
   const errors: string[] = [];
   const failures: string[] = [];
@@ -38,14 +38,18 @@ test("social membership shows connection points, respects privacy and survives d
     verifiedAt: me.joinedAt,
     public: 0,
   };
-  // Serve tested local bytes at the product origin. Provider and membership responses
-  // are explicit doubles; real OAuth security is covered by the SQLite/API tests.
+  // Serve the built bytes at the product origin without a second HTTP proxy.
+  // Proxy requests can outlive navigation and reset reused localhost sockets.
+  // Provider and membership responses below remain explicit doubles.
   await page.route(`${site}/**`, async (route) => {
-    const original = new URL(route.request().url());
-    const response = await route.fetch({
-      url: `${baseURL}${original.pathname}${original.search}`,
+    const pathname = new URL(route.request().url()).pathname;
+    await route.fulfill({
+      path: join(
+        process.cwd(),
+        "dist",
+        route.request().resourceType() === "document" ? "index.html" : pathname,
+      ),
     });
-    await route.fulfill({ response });
   });
   await page.route(`${site}/api/v1/points/**`, async (route) => {
     const path = new URL(route.request().url()).pathname;
