@@ -834,12 +834,30 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     <div className="install-panel" id="start">
       <div className="install-heading">
         <div>
-          <h2>Contribute</h2>
-          <p>
-            Paste this prompt into your coding agent. It reads the project
-            rules, finds available work on GitHub, and helps you prepare a PR
-            for maintainer review.
-          </p>
+          <p className="project-eyebrow">Contribute with any coding agent</p>
+          <h2>Get started</h2>
+          <ol className="project-contribution-steps">
+            <li>
+              <strong>Choose work</strong>
+              <span>
+                Read the project rules and find unclaimed work on GitHub.
+              </span>
+            </li>
+            <li>
+              <strong>Ship a PR</strong>
+              <span>
+                Make the change, test it, and disclose your agent and model.
+              </span>
+            </li>
+            <li>
+              <strong>Maintainer review</strong>
+              <span>
+                Accepted work earns score. Payments require funding and
+                approval.
+              </span>
+            </li>
+          </ol>
+          <p>Paste this into your agent to begin.</p>
         </div>
       </div>
       <AgentPromptBox prompt={projectAgentPrompt(project)} />
@@ -1543,36 +1561,45 @@ function ProjectPage({
             <span>/</span>
             {project.name}
           </p>
-          <div className="project-hero-grid">
-            <div>
-              <h1>{project.name}</h1>
-              <p className="hero-copy">{project.description}</p>
-              <div className="project-links">
-                <ExternalLinkAnchor href={project.links.repository}>
-                  View repository <ExternalLink aria-hidden="true" size={14} />
-                </ExternalLinkAnchor>
-                {view ? <a href="#contributors">Contributors</a> : null}
-                <a href="#project-records">Payment &amp; cycle records</a>
-              </div>
-              <p className="project-terms-line">
-                By{" "}
-                <ExternalLinkAnchor href={project.steward.github.profileUrl}>
-                  {project.steward.displayName}
-                </ExternalLinkAnchor>{" "}
-                · {project.terms.repositoryLicense.spdx ?? "license unknown"} ·{" "}
-                {project.terms.inbound.mode === "unknown"
-                  ? "inbound terms unknown"
-                  : `${project.terms.inbound.mode} inbound terms`}{" "}
-                · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
-                {project.steward.github.type === "User" ? (
-                  <PublicXLink actorId={project.steward.github.nodeId} />
-                ) : null}
-              </p>
-              {project.terms.externalPrize ? (
-                <p className="project-policy-warning">
-                  Organizer rules decide eligibility, amount, and payment.
-                </p>
+          <header className="project-masthead">
+            <h1>{project.name}</h1>
+            <p className="hero-copy">{project.description}</p>
+            <div className="project-repository-action">
+              <ExternalLinkAnchor
+                className="button secondary-button"
+                href={project.links.repository}
+              >
+                View repository <ExternalLink aria-hidden="true" size={14} />
+              </ExternalLinkAnchor>
+            </div>
+            <p className="project-terms-line">
+              By{" "}
+              <ExternalLinkAnchor href={project.steward.github.profileUrl}>
+                {project.steward.displayName}
+              </ExternalLinkAnchor>{" "}
+              · {project.terms.repositoryLicense.spdx ?? "license unknown"} ·{" "}
+              {project.terms.inbound.mode === "unknown"
+                ? "inbound terms unknown"
+                : `${project.terms.inbound.mode} inbound terms`}{" "}
+              · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
+              {project.steward.github.type === "User" ? (
+                <PublicXLink actorId={project.steward.github.nodeId} />
               ) : null}
+            </p>
+            {project.terms.externalPrize ? (
+              <p className="project-policy-warning">
+                Organizer rules decide eligibility, amount, and payment.
+              </p>
+            ) : null}
+          </header>
+          <nav className="project-section-nav" aria-label="Project sections">
+            <a href="#start">Contribute</a>
+            {view ? <a href="#contributors">Contributors</a> : null}
+            <a href="#project-records">Records</a>
+            <a href="#project-tools">Funding &amp; management</a>
+          </nav>
+          <div className="project-hero-grid project-start-grid">
+            <div>
               <ProjectParticipation
                 project={project}
                 displayCycleId={view?.cycle.id ?? null}
@@ -1663,7 +1690,7 @@ function ProjectPage({
         <div id="project-records">
           <ProjectPaymentHistory project={project} state={state} />
         </div>
-        <details className="project-tools">
+        <details className="project-tools" id="project-tools">
           <summary>Funding &amp; maintainer tools</summary>
           <ProjectFunding project={project} />
           <div className="project-links">

@@ -1162,14 +1162,119 @@ main h2,
 }
 
 .project-hero .install-panel {
-  margin-top: 28px;
+  margin-top: 0;
   padding: 0;
   border: 0;
   background: transparent;
 }
 
 .project-hero .install-panel h2 {
-  font-size: 24px;
+  font-size: 30px;
+}
+
+.project-masthead {
+  position: relative;
+  padding-right: 220px;
+}
+
+.project-masthead .hero-copy {
+  max-width: 70ch;
+  margin-top: 12px;
+}
+
+.project-repository-action {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.project-section-nav {
+  display: flex;
+  gap: 28px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  margin-block: 28px 32px;
+}
+
+.project-section-nav a {
+  padding-block: 14px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.project-section-nav a:hover {
+  color: var(--orange);
+}
+
+.project-eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+
+.project-contribution-steps {
+  list-style: none;
+  counter-reset: contribution-step;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+  padding: 0;
+}
+
+.project-contribution-steps li {
+  counter-increment: contribution-step;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.project-contribution-steps li::before {
+  content: "0" counter(contribution-step);
+  display: block;
+  margin-bottom: 12px;
+  color: var(--orange);
+  font-family: var(--brand-font-data);
+}
+
+.project-contribution-steps strong,
+.project-contribution-steps span {
+  display: block;
+}
+
+.project-contribution-steps span {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.project-start-grid .reward-card > strong {
+  font-size: 26px;
+}
+
+@media (max-width: 680px) {
+  .project-masthead {
+    padding-right: 0;
+  }
+
+  .project-repository-action {
+    position: static;
+    margin-top: 20px;
+  }
+
+  .project-contribution-steps {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .project-contribution-steps li {
+    padding-left: 36px;
+    position: relative;
+  }
+
+  .project-contribution-steps li::before {
+    position: absolute;
+    left: 0;
+  }
 }
 
 .project-tools {
