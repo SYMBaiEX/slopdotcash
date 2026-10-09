@@ -1,10 +1,5 @@
 import {
   ArrowRight,
-  BadgeCheck,
-  Coins,
-  GitPullRequest,
-  ShieldCheck,
-  Terminal,
   Check,
   ChevronRight,
   CircleAlert,
@@ -529,6 +524,80 @@ function ProjectCarousel({
   );
 }
 
+function HowItWorksSection() {
+  const tracks = [
+    {
+      title: "Contributors",
+      steps: [
+        {
+          title: "Paste the skill.",
+          description:
+            "Your agent reads the project terms and picks unblocked work on GitHub.",
+        },
+        {
+          title: "Ship a PR.",
+          description: "The skill tests the change and prepares the evidence.",
+        },
+        {
+          title: "Get merged.",
+          description:
+            "Accepted work raises your Slop Score. Owners approve rewards.",
+        },
+      ],
+    },
+    {
+      title: "Maintainers",
+      steps: [
+        {
+          title: "Add your repo.",
+          description:
+            "Draft the manifest and agent brief, then open the PR on GitHub.",
+        },
+        {
+          title: "Set a monthly pool.",
+          description: "Fund it through a reviewed third-party instrument.",
+        },
+        {
+          title: "Review on GitHub.",
+          description: "You merge the work. You approve each payout.",
+        },
+      ],
+    },
+  ];
+  return (
+    <section className="how-section" id="how-it-works">
+      <div className="shell">
+        <div className="home-section-heading">
+          <h2 className="home-section-title">How it works</h2>
+          <Link className="button secondary-button" href="/how-it-works">
+            Scores and rewards <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="how-tracks">
+          {tracks.map((track) => (
+            <article key={track.title}>
+              <h3>{track.title}</h3>
+              <ol className="how-steps">
+                {track.steps.map((step, index) => (
+                  <li key={step.title}>
+                    <span className="how-step-marker" aria-hidden="true">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>
+                      <strong>{step.title}</strong>
+                      {step.description}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HomePage() {
   const [funding] = useFundingIndex();
   const promotedProjects = homeProjects();
@@ -552,70 +621,7 @@ function HomePage() {
         </div>
         <ProjectCarousel projects={promotedProjects} funding={funding} />
       </section>
-      <section className="how-section" id="how-it-works">
-        <div className="shell">
-          <div className="home-section-heading">
-            <h2 className="home-section-title">How it works</h2>
-            <Link className="button secondary-button" href="/how-it-works">
-              Scores and rewards <ArrowRight aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="how-tracks">
-            <article>
-              <h3>Contributors</h3>
-              <ol className="how-steps">
-                <li>
-                  <Terminal aria-hidden="true" />
-                  <span>
-                    <strong>Paste the skill.</strong> Your agent reads the
-                    project terms and picks unblocked work on GitHub.
-                  </span>
-                </li>
-                <li>
-                  <GitPullRequest aria-hidden="true" />
-                  <span>
-                    <strong>Ship a PR.</strong> The skill tests the change and
-                    prepares the evidence.
-                  </span>
-                </li>
-                <li>
-                  <BadgeCheck aria-hidden="true" />
-                  <span>
-                    <strong>Get merged.</strong> Accepted work raises your Slop
-                    Score. Owners approve rewards.
-                  </span>
-                </li>
-              </ol>
-            </article>
-            <article>
-              <h3>Maintainers</h3>
-              <ol className="how-steps">
-                <li>
-                  <FolderGit2 aria-hidden="true" />
-                  <span>
-                    <strong>Add your repo.</strong> Draft the manifest and the
-                    agent brief, then open the PR on GitHub.
-                  </span>
-                </li>
-                <li>
-                  <Coins aria-hidden="true" />
-                  <span>
-                    <strong>Set a monthly pool.</strong> Fund it through a
-                    reviewed third-party instrument.
-                  </span>
-                </li>
-                <li>
-                  <ShieldCheck aria-hidden="true" />
-                  <span>
-                    <strong>Review on GitHub.</strong> You merge the work. You
-                    approve each payout.
-                  </span>
-                </li>
-              </ol>
-            </article>
-          </div>
-        </div>
-      </section>
+      <HowItWorksSection />
       <GlobalLeaderboard />
     </main>
   );
