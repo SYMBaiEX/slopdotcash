@@ -536,10 +536,13 @@ export function isRecognizedTestFile(path: string): boolean {
   );
 }
 
-export function materialTestStats(files: PullRequestFile[]): {
+export function materialTestStats(files: PullRequestFile[] | null): {
   additions: number;
   churn: number;
 } {
+  if (files === null) {
+    throw new Error("Cannot assess tests without pull request file detail");
+  }
   const testFiles = files.filter((file) => isRecognizedTestFile(file.path));
   const additions = testFiles.reduce(
     (total, file) => total + file.additions,
@@ -552,13 +555,17 @@ export function materialTestStats(files: PullRequestFile[]): {
   return { additions, churn };
 }
 
-export function hasMaterialTestChange(files: PullRequestFile[]): boolean {
+export function hasMaterialTestChange(
+  files: PullRequestFile[] | null,
+): boolean {
   const { additions, churn } = materialTestStats(files);
   return additions >= MATERIAL_TEST_ADDITIONS && churn >= MATERIAL_TEST_CHURN;
 }
 
 /** Open PRs with non-trivial test progress that still miss the published bar. */
-export function isNearMaterialTestChange(files: PullRequestFile[]): boolean {
+export function isNearMaterialTestChange(
+  files: PullRequestFile[] | null,
+): boolean {
   if (hasMaterialTestChange(files)) {
     return false;
   }
@@ -1283,13 +1290,6 @@ export function qualifiesResolvedIssue(issue: IssueRecord): boolean {
   );
 }
 
-export function isSubstantiveReview(
-  review: PullRequestReview,
-  pullRequest: PullRequestRecord,
-): boolean {
-  return reviewExclusionReason(review, pullRequest) === null;
-}
-
 function reviewExclusionReason(
   review: PullRequestReview,
   pullRequest: Pick<PullRequestRecord, "author" | "mergedAt">,
@@ -1373,7 +1373,7 @@ export function leaderboardMethodology(): LeaderboardMethodology {
         points: "micro 1/3; small 1; medium 3; large 8; XL 15; exceptional 25",
         cap: "uncapped; related or split pull requests share one workUnitId",
         qualification:
-          "Authored pull request merged during the rolling window. Unratified August work receives provisional micro credit; higher tiers require an immutable exact-head maintainer slop-score record.",
+          "Authored pull request merged during the rolling window. Unratified August work receives provisional micro credit; higher tiers require an immutable exact-head maintainer slop-score record. Integration-branch merge credit is split equally, at least 1/3 each, among the author and linked non-bot commit authors; each commit scores only in its earliest merged pull request.",
       },
       {
         id: "resolved-issue",
@@ -1559,6 +1559,7 @@ function addScore(
       ledger.some(
         (existing) =>
           existing.category === "merged-pull-request" &&
+          existing.source.id !== event.source.id &&
           `${projectId}\0${existing.occurredAt.slice(0, 7)}\0${existing.workUnitId}` ===
             globalWorkUnitKey,
       )
@@ -1918,6 +1919,7 @@ function isClaimLabel(
 function issueClaim(
   issue: IssueRecord,
   referenceTime: string,
+  linkedPullRequests: PullRequestRecord[],
 ): WorkItemClaimStatus {
   const assignees = issue.assignees.filter((actor) => !isBotActor(actor));
   if (assignees.length > 0) {
@@ -1926,6 +1928,19 @@ function issueClaim(
       source: "assignee",
       kind: "implementation",
       actors: assignees,
+      claimedAt: null,
+    };
+  }
+  if (linkedPullRequests.length > 0) {
+    return {
+      status: "claimed",
+      source: "pull-request",
+      kind: "implementation",
+      actors: dedupeByNodeId(
+        linkedPullRequests.flatMap((pullRequest) =>
+          pullRequest.author ? [pullRequest.author] : [],
+        ),
+      ).sort((left, right) => left.id.localeCompare(right.id)),
       claimedAt: null,
     };
   }
@@ -2109,6 +2124,7 @@ function workItemSelection(input: CandidateSelectionInput): WorkItemSelection {
 function issueWorkItem(
   issue: IssueRecord,
   referenceTime: string,
+  linkedPullRequests: PullRequestRecord[],
 ): {
   item: WorkItem;
   attribution: AttributionAssessment;
@@ -2116,7 +2132,7 @@ function issueWorkItem(
   const sources = issueTextSources(issue);
   const evidence = assessEvidence(sources);
   const attribution = assessModelAttribution(sources);
-  const claim = issueClaim(issue, referenceTime);
+  const claim = issueClaim(issue, referenceTime, linkedPullRequests);
   const labels = uniqueSorted(issue.labels.map((label) => label.name));
   const actionability = workItemActionability(issue.labels, false);
   return {
@@ -2443,6 +2459,101 @@ function latestSourceUpdate(input: LeaderboardInput): string {
   );
 }
 
+/**
+ * Assigns each commit SHA to the earliest merged integration-branch pull
+ * request that lists it, so a later consolidation or promotion pull request
+ * cannot score the same commits again.
+ */
+function commitCreditOwners(
+  outcomes: readonly MergedPullRequestOutcome[],
+): Map<string, string> {
+  const owners = new Map<string, string>();
+  const ordered = [...outcomes].sort(
+    (left, right) =>
+      parseIsoTime(left.mergedAt) - parseIsoTime(right.mergedAt) ||
+      compareCodeUnits(left.id, right.id),
+  );
+  for (const pullRequest of ordered) {
+    const repositoryId = repositoryIdFromUrl(pullRequest.url);
+    if (
+      pullRequest.commits === null ||
+      pullRequest.baseRefName !==
+        findRegisteredRepositoryById(repositoryId)?.integrationBranch
+    ) {
+      continue;
+    }
+    for (const commit of pullRequest.commits) {
+      const key = `${repositoryId.toLowerCase()}\0${commit.oid}`;
+      if (!owners.has(key)) owners.set(key, pullRequest.id);
+    }
+  }
+  return owners;
+}
+
+/**
+ * Vendor coding-agent User accounts that GitHub links to agent commit emails.
+ * An agent run is attributed to the human who submits it, never to the vendor.
+ */
+const AGENT_COMMIT_ACCOUNT_IDS: ReadonlySet<string> = new Set([
+  "MDQ6VXNlcjgxODQ3", // claude (Anthropic)
+  "U_kgDOD-0LXg", // codex (OpenAI)
+  "U_kgDOC972lw", // cursoragent (Cursor)
+]);
+
+/**
+ * Returns the non-bot pull-request author first, then every other non-bot
+ * GitHub author of a commit this pull request owns, in actor-ID order.
+ */
+function mergeCreditActors(
+  pullRequest: MergedPullRequestOutcome,
+  commitOwners: ReadonlyMap<string, string>,
+): GitHubActor[] {
+  const author =
+    pullRequest.author && !isBotActor(pullRequest.author)
+      ? pullRequest.author
+      : null;
+  const committers = new Map<string, GitHubActor>();
+  const repositoryId = repositoryIdFromUrl(pullRequest.url).toLowerCase();
+  for (const commit of pullRequest.commits ?? []) {
+    if (
+      commit.author &&
+      !isBotActor(commit.author) &&
+      !AGENT_COMMIT_ACCOUNT_IDS.has(commit.author.id) &&
+      commit.author.id !== author?.id &&
+      commitOwners.get(`${repositoryId}\0${commit.oid}`) === pullRequest.id
+    ) {
+      committers.set(commit.author.id, commit.author);
+    }
+  }
+  return [
+    ...(author ? [author] : []),
+    ...[...committers.values()].sort((left, right) =>
+      compareCodeUnits(left.id, right.id),
+    ),
+  ];
+}
+
+/**
+ * Splits integer score thirds equally; earlier actors receive the remainder.
+ * Every actor keeps at least the one-third micro credit of an accepted merge.
+ */
+export function shareScoreThirds(total: number, actors: number): number[] {
+  if (
+    !Number.isSafeInteger(total) ||
+    total < 1 ||
+    !Number.isSafeInteger(actors) ||
+    actors < 1
+  ) {
+    throw new TypeError("score shares need positive integer inputs");
+  }
+  const base = Math.floor(total / actors);
+  if (base === 0) return Array.from({ length: actors }, () => 1);
+  return Array.from(
+    { length: actors },
+    (_, index) => base + (index < total % actors ? 1 : 0),
+  );
+}
+
 export function createLeaderboardSnapshot(
   input: LeaderboardInput,
 ): LeaderboardSnapshot {
@@ -2721,43 +2832,67 @@ export function createLeaderboardSnapshot(
     if (current) scoreRatifications.set(pullRequest.id, current);
   }
 
+  const commitOwners = commitCreditOwners(mergedPullRequestOutcomes);
   for (const pullRequest of mergedPullRequestOutcomes) {
     const repositoryId = repositoryIdFromUrl(pullRequest.url);
     const ratification = detailEligibleMergedPullRequestIds.has(pullRequest.id)
       ? scoreRatifications.get(pullRequest.id)
       : undefined;
-    if (
-      pullRequest.author &&
-      !isBotActor(pullRequest.author) &&
-      (!requiresExplicitPrizeAcceptance(repositoryId) || ratification)
-    ) {
-      const authorEntry = actorEntry(entries, pullRequest.author);
+    if (requiresExplicitPrizeAcceptance(repositoryId) && !ratification) {
+      continue;
+    }
+    const v2 =
+      parseIsoTime(pullRequest.mergedAt) >= parseIsoTime(SCORE_V2_EFFECTIVE_AT);
+    const author =
+      pullRequest.author && !isBotActor(pullRequest.author)
+        ? pullRequest.author
+        : null;
+    // Score v1 history credits the pull-request author only.
+    const actors = v2
+      ? mergeCreditActors(pullRequest, commitOwners)
+      : author
+        ? [author]
+        : [];
+    if (actors.length === 0) continue;
+    const totalThirds = ratification?.record.scoreThirds ?? 1;
+    const shares = shareScoreThirds(totalThirds, actors.length);
+    if (author) {
+      const authorEntry = actorEntry(entries, author);
       authorEntry.rawActivity.additions += pullRequest.additions;
       authorEntry.rawActivity.deletions += pullRequest.deletions;
-      const contributionAssessment = assessModelAttribution(
-        [pullRequestBodySource(pullRequest)],
-        {
-          requireEverySource: true,
-          verifyRunReceipt: input.verifyRunReceipt,
-        },
-      );
-      const contributionRun = input.verifyRunReceipt
-        ? contributionAssessment.declarations.find(
-            (declaration) =>
-              declaration.actor?.id === pullRequest.author?.id &&
-              declaration.artifactId === pullRequest.id,
-          )?.run
-        : null;
-      const contributionBonus = contributionRun?.traceUpload ? 1_500 : 0;
+    }
+    const contributionAssessment = assessModelAttribution(
+      [pullRequestBodySource(pullRequest)],
+      {
+        requireEverySource: true,
+        verifyRunReceipt: input.verifyRunReceipt,
+      },
+    );
+    const contributionRun = input.verifyRunReceipt
+      ? contributionAssessment.declarations.find(
+          (declaration) =>
+            declaration.actor?.id === author?.id &&
+            declaration.artifactId === pullRequest.id,
+        )?.run
+      : null;
+    const baseReason = ratification
+      ? `Maintainer-ratified ${ratification.record.tier} accepted outcome: ${ratification.record.reason}`
+      : "Accepted outcome has provisional micro credit pending immutable maintainer ratification.";
+    for (const [index, actor] of actors.entries()) {
+      const isAuthor = actor.id === author?.id;
+      const scoreThirds = shares[index] as number;
+      const contributionBonus =
+        isAuthor && contributionRun?.traceUpload ? 1_500 : 0;
       const scored = addScore(entries, ledger, {
-        id: `${pullRequest.id}:merged`,
-        actor: pullRequest.author,
+        id: isAuthor
+          ? `${pullRequest.id}:merged`
+          : `${pullRequest.id}:merged:${actor.id}`,
+        actor,
         category: "merged-pull-request",
-        points: ratification ? ratification.record.scoreThirds / 3 : 1 / 3,
-        ...(parseIsoTime(pullRequest.mergedAt) >=
-        parseIsoTime(SCORE_V2_EFFECTIVE_AT)
+        points: v2 ? scoreThirds / 3 : totalThirds / 3,
+        ...(v2
           ? {
-              scoreThirds: ratification?.record.scoreThirds ?? 1,
+              scoreThirds,
               evidenceBonusBasisPoints: contributionBonus as
                 | 0
                 | 1_000
@@ -2765,7 +2900,7 @@ export function createLeaderboardSnapshot(
                 | 2_500,
               workUnitId:
                 ratification?.record.workUnitId ??
-                `wu_${repositoryIdFromUrl(pullRequest.url)
+                `wu_${repositoryId
                   .toLowerCase()
                   .replace(/[^a-z0-9_-]+/gu, "_")}_pr_${pullRequest.number}`,
               scoreDecisionSourceId: ratification?.source.id,
@@ -2780,11 +2915,12 @@ export function createLeaderboardSnapshot(
           title: pullRequest.title,
           url: pullRequest.url,
         },
-        reason: ratification
-          ? `Maintainer-ratified ${ratification.record.tier} accepted outcome: ${ratification.record.reason}`
-          : "Accepted outcome has provisional micro credit pending immutable maintainer ratification.",
+        reason:
+          actors.length === 1
+            ? baseReason
+            : `${baseReason} Shared equally among ${actors.length} commit authors.`,
       });
-      if (scored) {
+      if (scored && isAuthor) {
         recordScoredSources([pullRequestBodySource(pullRequest)]);
       }
     }
@@ -3012,6 +3148,7 @@ export function createLeaderboardSnapshot(
       }
     }
 
+    const reviewLedgerStart = ledger.length;
     const ratification = scoreRatifications.get(pullRequest.id);
     const awardedReviewers = new Set<string>();
     const hasEvaluatedReviewReservation = (actorId: string): boolean =>
@@ -3117,7 +3254,7 @@ export function createLeaderboardSnapshot(
           "Immutable maintainer score ratification for an accepted outcome.",
       });
     }
-    for (const review of dedupeByNodeId(pullRequest.reviews).sort(
+    const orderedReviews = dedupeByNodeId(pullRequest.reviews).sort(
       (left, right) => {
         if (left.submittedAt === right.submittedAt) {
           return left.id.localeCompare(right.id);
@@ -3130,7 +3267,8 @@ export function createLeaderboardSnapshot(
         }
         return left.submittedAt.localeCompare(right.submittedAt);
       },
-    )) {
+    );
+    for (const review of orderedReviews) {
       if (review.author && !isBotActor(review.author)) {
         actorEntry(entries, review.author).rawActivity.reviews += 1;
       }
@@ -3144,7 +3282,16 @@ export function createLeaderboardSnapshot(
         excludeReview(pullRequest, review, "evaluated-contribution-award");
         continue;
       }
-      const exclusionReason = reviewExclusionReason(review, pullRequest);
+      const exclusionReason =
+        reviewExclusionReason(review, pullRequest) ??
+        (ledger.some(
+          (event) =>
+            event.category === "merged-pull-request" &&
+            event.source.id === pullRequest.id &&
+            event.actor.id === review.author?.id,
+        )
+          ? "self-review"
+          : null);
       if (exclusionReason !== null) {
         excludeReview(pullRequest, review, exclusionReason);
         continue;
@@ -3207,6 +3354,45 @@ export function createLeaderboardSnapshot(
       } else {
         excludeReview(pullRequest, review, "reviewer-cycle-cap");
       }
+    }
+    // Preserve the later verification without another award or evidence bonus.
+    // Missing reviewed commits cannot establish a change of head.
+    for (const event of ledger.slice(reviewLedgerStart)) {
+      if (
+        event.category !== "substantive-review" ||
+        event.source.kind !== "review"
+      )
+        continue;
+      const firstIndex = orderedReviews.findIndex(
+        (review) => review.id === event.source.id,
+      );
+      const first = orderedReviews[firstIndex];
+      if (
+        !first?.commitId ||
+        reviewExclusionReason(first, pullRequest) !== null
+      )
+        continue;
+      const heads = new Set<string>();
+      const history: NonNullable<ScoreEvent["reviewHistory"]> = [];
+      for (const review of orderedReviews.slice(firstIndex)) {
+        if (
+          review.author?.id !== event.actor.id ||
+          !review.commitId ||
+          !review.submittedAt ||
+          heads.has(review.commitId) ||
+          reviewExclusionReason(review, pullRequest) !== null
+        )
+          continue;
+        heads.add(review.commitId);
+        history.push({
+          sourceId: review.id,
+          state: review.state as "APPROVED" | "CHANGES_REQUESTED",
+          commitId: review.commitId,
+          submittedAt: review.submittedAt,
+          url: review.url,
+        });
+      }
+      if (history.length > 1) event.reviewHistory = history;
     }
   }
 
@@ -3313,8 +3499,31 @@ export function createLeaderboardSnapshot(
     }
   }
 
+  const issuePullRequests = new Map<string, PullRequestRecord[]>();
+  for (const pullRequest of openPullRequests) {
+    for (const issueId of pullRequest.closingIssueIds) {
+      const linked = issuePullRequests.get(issueId) ?? [];
+      linked.push(pullRequest);
+      issuePullRequests.set(issueId, linked);
+    }
+  }
+  const openPullRequestById = new Map(
+    openPullRequests.map((record) => [record.id, record]),
+  );
+  for (const issue of openIssues) {
+    const linked = issuePullRequests.get(issue.id) ?? [];
+    for (const id of issue.referencedPullRequestIds ?? []) {
+      const pullRequest = openPullRequestById.get(id);
+      if (pullRequest) linked.push(pullRequest);
+    }
+    issuePullRequests.set(issue.id, dedupeByNodeId(linked));
+  }
   const issueQueue = openIssues.map((record) =>
-    issueWorkItem(record, input.generatedAt),
+    issueWorkItem(
+      record,
+      input.generatedAt,
+      issuePullRequests.get(record.id) ?? [],
+    ),
   );
   const pullRequestQueue = openPullRequests.map((record) =>
     pullRequestWorkItem(
@@ -3352,53 +3561,42 @@ export function createLeaderboardSnapshot(
         : [],
     ),
   );
+  const retainedRejectedSources = new Set<string>();
   for (const event of ledger) {
     const candidate = retainedAttributionCandidates.get(event.id);
     if (!candidate || !input.verifyRunReceipt) continue;
-    try {
-      assertAttributionValue(candidate, `retained attribution ${candidate.id}`);
-      const verifiedRun = input.verifyRunReceipt(candidate.run);
-      const parentPullRequestId = event.id.split(":", 1)[0];
-      const claims = verifiedRun.traceUpload
-        ? [
-            `client run:${verifiedRun.runId}`,
-            `server run:${verifiedRun.traceUpload.serverRunId}`,
-            `trace object:${verifiedRun.traceUpload.objectId}`,
-          ]
-        : [];
-      if (
-        candidate.format !== "machine-marker" ||
-        candidate.actor?.id !== event.actor.id ||
-        candidate.sourceId !== event.source.id ||
-        candidate.sourceUrl !== event.source.url ||
-        candidate.artifactId !== parentPullRequestId ||
-        candidate.run === null ||
-        !verifiedRun.traceUpload ||
-        verifiedRun.repositoryId !== event.repository ||
-        verifiedRun.provider !== candidate.provider ||
-        verifiedRun.model !== candidate.model ||
-        verifiedRun.client !== candidate.client ||
-        verifiedRun.skillRevision !== candidate.skillRevision ||
-        Date.parse(verifiedRun.completedAt) > Date.parse(event.occurredAt) ||
-        claims.some((claim) => receiptClaims.has(claim))
-      ) {
-        continue;
-      }
-      for (const claim of claims) receiptClaims.add(claim);
-      event.evidenceBonusBasisPoints = 1_500;
-      attributions.push({ ...candidate, run: verifiedRun });
-    } catch {
-      // Historical attribution is optional. Invalid replay never removes the
-      // independently accepted base review credit.
+    const replay = replayRetainedReviewAttribution(
+      event,
+      candidate,
+      input.verifyRunReceipt,
+      receiptClaims,
+    );
+    // Historical attribution is optional. A rejected replay never removes the
+    // independently accepted base review credit.
+    if ("rejection" in replay) {
+      retainedRejectedSources.add(event.source.id);
+      overallAttribution.invalidMarkers.push({
+        sourceId: event.source.id,
+        sourceUrl: event.source.url,
+        reason: replay.rejection,
+      });
+      continue;
     }
+    for (const claim of replay.claims) receiptClaims.add(claim);
+    event.evidenceBonusBasisPoints = 1_500;
+    attributions.push({ ...candidate, run: replay.run });
   }
   const retainedValidSourceCount =
     attributions.length - overallAttribution.declarations.length;
   const eligibleSourceCount =
-    overallAttribution.coverage.eligibleSourceCount + retainedValidSourceCount;
+    overallAttribution.coverage.eligibleSourceCount +
+    retainedValidSourceCount +
+    retainedRejectedSources.size;
   const validSourceCount =
     overallAttribution.coverage.validSourceCount + retainedValidSourceCount;
-  const invalidSourceCount = overallAttribution.coverage.invalidSourceCount;
+  const invalidSourceCount = new Set(
+    overallAttribution.invalidMarkers.map((marker) => marker.sourceId),
+  ).size;
   const attributionCoverage: AttributionCoverage = {
     ...overallAttribution.coverage,
     status:
@@ -3413,6 +3611,8 @@ export function createLeaderboardSnapshot(
             : "missing",
     eligibleSourceCount,
     validSourceCount,
+    invalidSourceCount,
+    missingSourceCount: eligibleSourceCount - validSourceCount,
   };
   // A receipt can look valid when a review is assessed in isolation but be
   // rejected by the snapshot-wide replay guard because another scored source
@@ -4602,6 +4802,66 @@ function assertLedgerValue(
     `${path}.source.kind`,
   );
   assertString(source.title, `${path}.source.title`);
+  if ("reviewHistory" in event) {
+    if (event.category !== "substantive-review" || source.kind !== "review")
+      throw new Error(
+        `${path}.reviewHistory is reserved for formal review awards`,
+      );
+    if (!Array.isArray(event.reviewHistory))
+      throw new Error(`${path}.reviewHistory must be an array`);
+    const history = event.reviewHistory;
+    if (history.length < 2)
+      throw new Error(`${path}.reviewHistory must include a later decision`);
+    const ids = new Set<string>();
+    const heads = new Set<string>();
+    let previousTime = "";
+    let previousId = "";
+    for (const [index, value] of history.entries()) {
+      const historyPath = `${path}.reviewHistory[${index}]`;
+      const decision = assertObject(value, historyPath);
+      if (
+        Object.keys(decision).sort().join("\0") !==
+        "commitId\0sourceId\0state\0submittedAt\0url"
+      )
+        throw new Error(`${historyPath} has unexpected or missing fields`);
+      assertString(decision.sourceId, `${historyPath}.sourceId`);
+      assertEnum(
+        decision.state,
+        ["APPROVED", "CHANGES_REQUESTED"],
+        `${historyPath}.state`,
+      );
+      assertString(decision.commitId, `${historyPath}.commitId`);
+      if (!/^[a-f0-9]{40}$/u.test(decision.commitId))
+        throw new Error(`${historyPath}.commitId must be an exact commit`);
+      assertIsoTimestamp(decision.submittedAt, `${historyPath}.submittedAt`);
+      assertRepositoryUrl(
+        decision.url,
+        `${historyPath}.url`,
+        "review",
+        Number(source.number),
+        event.repository as RepositoryId,
+      );
+      if (
+        index === 0 &&
+        (decision.sourceId !== source.id ||
+          decision.url !== source.url ||
+          decision.submittedAt !== event.occurredAt)
+      )
+        throw new Error(`${historyPath} must identify the awarded source`);
+      if (ids.has(decision.sourceId) || heads.has(decision.commitId))
+        throw new Error(`${historyPath} repeats a source or reviewed commit`);
+      if (
+        decision.submittedAt < previousTime ||
+        (decision.submittedAt === previousTime &&
+          decision.sourceId <= previousId)
+      )
+        throw new Error(`${historyPath} is not in deterministic review order`);
+      ids.add(decision.sourceId);
+      heads.add(decision.commitId);
+      previousTime = decision.submittedAt;
+      previousId = decision.sourceId;
+    }
+  }
   if (source.kind === "external") {
     if (event.category !== "evaluated-contribution") {
       throw new Error(
@@ -4828,6 +5088,84 @@ function assertOpportunityValue(
   if (kind !== "expand-review" && source.kind !== "pull-request") {
     throw new Error(`${path}.source.kind must be pull-request for ${kind}`);
   }
+}
+
+export type RetainedAttributionRejection =
+  | "invalid-attribution"
+  | "receipt-verification-failed"
+  | "not-machine-marker"
+  | "actor-mismatch"
+  | "source-mismatch"
+  | "source-url-mismatch"
+  | "parent-pull-request-mismatch"
+  | "trace-not-finalized"
+  | "repository-mismatch"
+  | "declared-identity-mismatch"
+  | "run-completed-after-review"
+  | "receipt-already-claimed";
+
+/**
+ * Replays one retained signed attribution against the accepted review it was
+ * published on. Nothing stored is trusted: the receipt is verified again and
+ * every binding must hold, or the first failed binding is named.
+ */
+export function replayRetainedReviewAttribution(
+  event: ScoreEvent,
+  candidate: ModelAttribution,
+  verifyRunReceipt: (receipt: unknown) => ProjectRunReceipt,
+  receiptClaims: ReadonlySet<string>,
+):
+  | { run: ProjectRunReceipt; claims: string[] }
+  | { rejection: RetainedAttributionRejection } {
+  try {
+    assertAttributionValue(candidate, `retained attribution ${candidate.id}`);
+  } catch {
+    // error-policy:J3 a malformed retained attribution is an explicit rejection.
+    return { rejection: "invalid-attribution" };
+  }
+  let run: ProjectRunReceipt;
+  try {
+    run = verifyRunReceipt(candidate.run);
+  } catch {
+    // error-policy:J3 an unverifiable receipt is an explicit rejection.
+    return { rejection: "receipt-verification-failed" };
+  }
+  const reject = (rejection: RetainedAttributionRejection) => ({ rejection });
+  if (candidate.format !== "machine-marker") {
+    return reject("not-machine-marker");
+  }
+  if (candidate.actor?.id !== event.actor.id) return reject("actor-mismatch");
+  if (candidate.sourceId !== event.source.id) return reject("source-mismatch");
+  if (candidate.sourceUrl !== event.source.url) {
+    return reject("source-url-mismatch");
+  }
+  if (candidate.artifactId !== event.id.split(":", 1)[0]) {
+    return reject("parent-pull-request-mismatch");
+  }
+  if (!run.traceUpload) return reject("trace-not-finalized");
+  if (run.repositoryId !== event.repository) {
+    return reject("repository-mismatch");
+  }
+  if (
+    run.provider !== candidate.provider ||
+    run.model !== candidate.model ||
+    run.client !== candidate.client ||
+    run.skillRevision !== candidate.skillRevision
+  ) {
+    return reject("declared-identity-mismatch");
+  }
+  if (Date.parse(run.completedAt) > Date.parse(event.occurredAt)) {
+    return reject("run-completed-after-review");
+  }
+  const claims = [
+    `client run:${run.runId}`,
+    `server run:${run.traceUpload.serverRunId}`,
+    `trace object:${run.traceUpload.objectId}`,
+  ];
+  if (claims.some((claim) => receiptClaims.has(claim))) {
+    return reject("receipt-already-claimed");
+  }
+  return { run, claims };
 }
 
 function assertAttributionValue(
@@ -5609,8 +5947,11 @@ export function assertLeaderboardSnapshot(
       "snapshot.source.counts.openPullRequests must match the pull request queue length",
     );
   }
-  const mergedOutcomeEvents = validatedLedger.filter(
-    (event) => event.category === "merged-pull-request",
+  // Shared merge credit emits one event per commit author of one source.
+  const mergedOutcomeSourceIds = new Set(
+    validatedLedger
+      .filter((event) => event.category === "merged-pull-request")
+      .map((event) => event.source.id),
   );
   const detailedPullRequestIds = new Set(
     validatedLedger
@@ -5648,7 +5989,7 @@ export function assertLeaderboardSnapshot(
     "snapshot.source.counts.resolvedIssues",
   );
   if (
-    mergedOutcomeEvents.length > mergedPullRequestCount ||
+    mergedOutcomeSourceIds.size > mergedPullRequestCount ||
     detailedPullRequestIds.size > detailedMergedPullRequestCount ||
     reviewedPullRequestIds.size > mergedPullRequestCount ||
     resolvedIssueEvents.length > resolvedIssueCount

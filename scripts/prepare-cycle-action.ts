@@ -28,6 +28,7 @@ import {
   assertProjectPaymentsEnabled,
   findProject,
 } from "../src/lib/projects.mjs";
+import { fundingInstrumentSource } from "../src/lib/settlement-plan";
 import { parseFinalizeArguments } from "./finalize-reward-cycle";
 import { loadCanonicalPaymentReservation } from "./load-payment-reservation";
 import { parsePaymentReservationArguments } from "./prepare-payment-reservation";
@@ -356,7 +357,7 @@ export async function prepareCycleAction(
       );
       args.push(
         "--source-wallet",
-        loaded.instrument.vault,
+        fundingInstrumentSource(loaded.instrument),
         "--fee-wallet",
         loaded.policy.feeRecipient,
       );
@@ -392,6 +393,15 @@ export async function prepareCycleAction(
       await writeFile(join(evidenceDirectory, name), bytes, { flag: "wx" });
       checksums.push(`${sha256(bytes)}  ${name}`);
     }
+    const modifiedFiles = proposing
+      ? ["src/lib/project-promotion.generated.json"]
+      : [];
+    for (const path of modifiedFiles) {
+      const bytes = await regularBytes(join(root, path));
+      const name = "project-promotion.generated.json";
+      await writeFile(join(evidenceDirectory, name), bytes, { flag: "wx" });
+      checksums.push(`${sha256(bytes)}  ${name}`);
+    }
     await writeFile(
       join(evidenceDirectory, "SHA256SUMS"),
       `${checksums.join("\n")}\n`,
@@ -405,6 +415,7 @@ export async function prepareCycleAction(
       newFiles: [...allowedNew]
         .sort()
         .map((name) => `cycles/${input.project}/${input.cycle}/${name}`),
+      modifiedFiles,
     };
     await writeFile(
       join(evidenceDirectory, "action.json"),
