@@ -31,6 +31,17 @@ const DEFAULT_RETRY_DELAY_MS = 5_000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
 const DEFAULT_TOTAL_TIMEOUT_MS = 5 * 60_000;
 const CANONICAL_ORIGIN = "https://slop.cash";
+const STAGING_ORIGIN = "https://staging.slop.cash";
+// Immutable Cloudflare Pages deployment URLs for the staging project.
+const STAGING_DEPLOYMENT_ORIGIN = /^https:\/\/[0-9a-f]{8}\.slop-staging\.pages\.dev$/u;
+
+function isVerificationOrigin(origin) {
+  return (
+    origin === CANONICAL_ORIGIN ||
+    origin === STAGING_ORIGIN ||
+    STAGING_DEPLOYMENT_ORIGIN.test(origin)
+  );
+}
 const RESERVED_PATHS = new Set([
   "_headers",
   "_redirects",
@@ -543,7 +554,7 @@ async function main(arguments_) {
   if (
     command === "verify" &&
     distRoot !== undefined &&
-    origin === CANONICAL_ORIGIN &&
+    isVerificationOrigin(origin) &&
     verificationToken !== undefined &&
     extra.length === 0
   ) {
@@ -558,7 +569,7 @@ async function main(arguments_) {
     return;
   }
   throw new TypeError(
-    `Usage: ${basename(process.argv[1])} create <dist> | verify-local <dist> | verify <dist> ${CANONICAL_ORIGIN} <token>`,
+    `Usage: ${basename(process.argv[1])} create <dist> | verify-local <dist> | verify <dist> ${CANONICAL_ORIGIN}|${STAGING_ORIGIN}|<staging deployment origin> <token>`,
   );
 }
 
