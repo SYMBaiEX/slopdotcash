@@ -2495,3 +2495,10 @@ main h2,
     padding-right: 0;
   }
 }
+
+.project-info-heading .project-avatar {
+  order: 2;
+}
+.project-hero-grid .project-info {
+  margin-left: 0;
+}
