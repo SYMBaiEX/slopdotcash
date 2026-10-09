@@ -20,6 +20,7 @@ import {
   contributorStandings,
   type StandingsSort,
 } from "./lib/contributor-standings";
+import { copyText } from "./lib/copy-text";
 import type { CycleIndex } from "./lib/cycle-index";
 import { deploymentTier } from "./lib/deployment";
 import { requestIdentityAssertion } from "./lib/identity-flow";
@@ -484,7 +485,16 @@ export function ProfilePoints({
           ? named[0]
           : undefined
       : undefined;
+  const pointsActor = m?.actor ?? identity?.actor ?? recorded;
   const [copied, setCopied] = useState("");
+  const copyProfile = () => {
+    void copyText(
+      `${window.location.origin}/contributors/${encodeURIComponent(login)}`,
+    ).then(
+      () => setCopied("Link copied"),
+      () => setCopied("Copy unavailable. Copy this page’s address."),
+    );
+  };
   return (
     <section className="points-panel" aria-label="Slop Points">
       <ProfileActivity
@@ -501,7 +511,7 @@ export function ProfilePoints({
             {summary}
             <div>
               <strong>
-                {state.status === "ready" && (m || identity || recorded)
+                {state.status === "ready" && pointsActor
                   ? (
                       (m?.total ?? 0) +
                       (identity?.welcome ?? 0) +
@@ -524,7 +534,7 @@ export function ProfilePoints({
           <h2 id="profile-points-heading">Slop Points</h2>
           <a href="/points#rules">How to earn points</a>
         </div>
-        {state.status === "ready" && (m || identity || recorded) ? (
+        {state.status === "ready" && pointsActor ? (
           <div className="profile-points-content">
             <div className="profile-points-month">
               <strong>{m?.monthly.toLocaleString() ?? "0"}</strong>
@@ -547,27 +557,10 @@ export function ProfilePoints({
                   points
                 </p>
               ) : null}
-              <PublicXLink
-                actorId={(m?.actor ?? identity?.actor ?? recorded!).id}
-              />
+              <PublicXLink actorId={pointsActor.id} />
             </div>
             <div className="profile-points-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  void navigator.clipboard
-                    .writeText(
-                      `${window.location.origin}/contributors/${encodeURIComponent(login)}`,
-                    )
-                    .then(
-                      () => setCopied("Link copied"),
-                      () =>
-                        setCopied(
-                          "Copy unavailable. Copy this page’s address.",
-                        ),
-                    );
-                }}
-              >
+              <button type="button" onClick={copyProfile}>
                 Copy profile link
               </button>
               <span role="status">{copied}</span>
@@ -1299,8 +1292,8 @@ export function ContributorStandings({
             <dd>Verified, finalized USDC principal.</dd>
           </div>
         </dl>
-        <div className="standings-guide-bottom">
-          {compact ? (
+        {compact ? (
+          <div className="standings-guide-bottom">
             <nav
               aria-label="Explore standings"
               className="standings-guide-links"
@@ -1313,8 +1306,8 @@ export function ContributorStandings({
                 Find people <span aria-hidden="true">→</span>
               </a>
             </nav>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </footer>
     </section>
   );
