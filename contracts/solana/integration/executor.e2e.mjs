@@ -31,6 +31,7 @@ import {
 } from "../.local/executor.mjs";
 import { indexPaymentEvent } from "../.local/ledger.mjs";
 import { scanSolanaPayments } from "../.local/scanner.mjs";
+import { expectedDeployment } from "./deployment.mjs";
 
 const { AnchorProvider, Program, BN } = anchor;
 const provider = AnchorProvider.env(),
@@ -316,10 +317,7 @@ test("durable executor verifies SQLite consent, binds, creates ATAs, pays and re
     owner: payer.publicKey.toBase58(),
     identityAuthority: identity.publicKey.toBase58(),
     feeRecipient: fee.publicKey.toBase58(),
-    codeSha256: hash(readFileSync("target/deploy/slop_escrow.so")).toString(
-      "hex",
-    ),
-    upgradeAuthority: "11111111111111111111111111111111",
+    ...expectedDeployment,
     bindingDelaySeconds: "2",
   };
   const common = {

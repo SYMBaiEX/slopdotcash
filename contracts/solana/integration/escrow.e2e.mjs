@@ -24,6 +24,7 @@ import {
   solanaAwardId,
   solanaPaymentAdapter,
 } from "../.local/adapter.mjs";
+import { expectedDeployment } from "./deployment.mjs";
 
 const { AnchorProvider, Program, BN } = anchor;
 const provider = AnchorProvider.env();
@@ -434,10 +435,7 @@ test("actual SPL escrow lifecycle, late wallet claim, reserve and authority atta
     owner: payer.publicKey.toBase58(),
     identityAuthority: authority.publicKey.toBase58(),
     feeRecipient: feeOwner.publicKey.toBase58(),
-    codeSha256: createHash("sha256")
-      .update(readFileSync("target/deploy/slop_escrow.so"))
-      .digest("hex"),
-    upgradeAuthority: "11111111111111111111111111111111",
+    ...expectedDeployment,
     bindingDelaySeconds: String(DELAY),
   });
   for (const [signature, kind] of [
