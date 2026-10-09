@@ -2134,3 +2134,7 @@ main h2,
 .project-hero #start.install-panel h2 {
   font-size: 14px;
 }
+
+.payment-history .plain-table-wrap {
+  border-block: 0;
+}
