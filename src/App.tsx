@@ -481,7 +481,7 @@ function ProjectCarousel({
 }) {
   const [paused, setPaused] = useState(false);
   const loopProjects = Array.from(
-    { length: projects.length ? Math.ceil(6 / projects.length) : 0 },
+    { length: projects.length ? Math.ceil(8 / projects.length) : 0 },
     () => projects,
   ).flat();
   return (
