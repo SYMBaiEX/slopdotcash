@@ -619,20 +619,6 @@ label {
   line-height: 1.1;
 }
 
-.project-tier > h3 {
-  margin: 0 0 20px;
-  color: var(--muted);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.project-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-  gap: 12px;
-}
-
 .project-card {
   gap: 16px;
   padding: 16px;
@@ -694,78 +680,6 @@ label {
 .project-bounty {
   justify-content: flex-start;
   text-align: left;
-}
-
-.project-bounty strong {
-  font-family: var(--brand-font-data);
-  letter-spacing: -0.04em;
-}
-
-.project-rows {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--line);
-}
-
-.project-rows li {
-  border-bottom: 1px solid var(--line);
-}
-
-.project-row {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 8px;
-}
-
-.project-row:hover {
-  background: rgba(243, 239, 230, 0.03);
-}
-
-.project-row .project-avatar {
-  width: 44px;
-  height: 44px;
-  font-size: 18px;
-}
-
-.project-row-name {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-
-.project-row-name strong {
-  font-size: 18px;
-}
-
-.project-row-name small {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.project-row-amount {
-  font-family: var(--brand-font-data);
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.project-row > svg {
-  width: 18px;
-  color: var(--muted);
-}
-
-.project-row:hover > svg {
-  color: var(--orange);
-}
-
-.community-projects {
-  margin-top: 64px;
 }
 
 .pagination {
@@ -1197,16 +1111,9 @@ label {
 }
 
 /* Tabs. */
-.leaderboard-mode-tabs button,
 [role="tablist"] [role="tab"] {
   font-size: 15px;
   font-weight: 600;
-}
-
-.leaderboard-mode-tabs button[aria-selected="true"] {
-  box-shadow: 0 2px 0 var(--orange);
-  color: var(--ink);
-  font-weight: 700;
 }
 
 /* Data and state colors. */
@@ -1223,18 +1130,9 @@ label {
 }
 
 /* Cards and panels shared across records. */
-.reward-card,
-.manifest-preview,
-.agent-handoff,
-.leaderboard-cycle-summary,
-.leaderboard-record-summary {
+.manifest-preview {
   border: 1px solid var(--line-strong);
   border-radius: var(--brand-radius-large);
-}
-
-.reward-card > span,
-.leaderboard-cycle-summary span {
-  color: var(--orange);
 }
 
 @media (max-width: 900px) {
@@ -1252,10 +1150,6 @@ label {
 }
 
 @media (max-width: 680px) {
-  .header-inner {
-    min-height: 72px;
-  }
-
   .wordmark {
     font-size: 19px;
   }
@@ -1284,18 +1178,6 @@ label {
   .command-box .button {
     width: 100%;
   }
-
-  .how-tracks article {
-    padding: 28px 24px;
-  }
-
-  .project-card {
-    padding: 24px;
-  }
-
-  .project-row-amount {
-    display: none;
-  }
 }
 
 .project-bounty strong {
@@ -1303,12 +1185,6 @@ label {
   font-size: clamp(26px, 2.5vw, 34px);
   letter-spacing: -0.03em;
   line-height: 0.95;
-}
-
-.project-bounty.project-bounty-unfunded strong {
-  font-size: clamp(22px, 2vw, 28px);
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
 }
 
 .project-money-state,
@@ -1420,26 +1296,8 @@ main h2,
   text-underline-offset: 4px;
 }
 
-.project-hero .install-panel {
-  margin-top: 24px;
-  padding: 20px;
-}
-
-.project-hero .install-heading {
-  margin-bottom: 14px;
-}
-
-.project-hero .install-advanced {
-  margin-top: 14px;
-  padding-top: 14px;
-}
-
 .project-hero > .shell > .data-notice {
   margin-bottom: 20px;
-}
-
-.project-hero .install-panel h2 {
-  font-size: 26px;
 }
 
 .project-reward-status {
@@ -1484,32 +1342,18 @@ main h2,
 
 .project-info-heading h2 {
   margin: 0;
-  font-size: clamp(28px, 3vw, 36px);
 }
 
 .project-info-heading a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 .project-info .hero-copy {
   margin-block: 8px;
   font-size: 15px;
-}
-
-.project-info .project-terms-line {
-  margin-top: 8px;
-  font-size: 13px;
-}
-
-.project-repo-branch {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .cycle-allocation-details > summary {
@@ -1569,12 +1413,7 @@ main h2,
     margin-top: 12px;
   }
 
-  .project-info-heading h2 {
-    font-size: 26px;
-  }
-
   .project-info-heading a {
-    font-size: 13px;
     overflow-wrap: anywhere;
   }
 
@@ -1583,40 +1422,12 @@ main h2,
     line-height: 1.5;
   }
 
-  .project-info .project-terms-line,
-  .project-repo-branch {
-    font-size: 12px;
-  }
-
-  .project-hero-grid {
-    gap: 20px;
-  }
-
   .project-hero .project-reward-status {
-    padding: 16px;
     text-align: left;
   }
 
   .project-hero .project-reward-status > strong {
     margin: 0 0 6px;
-    font-size: 22px;
-  }
-
-  .project-hero .project-reward-status > p {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .project-hero .install-panel {
-    margin-top: 24px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-
-  .project-hero .install-panel h2 {
-    font-size: 22px;
   }
 
   .project-hero .agent-prompt-box {
@@ -1631,30 +1442,13 @@ main h2,
 
   .project-hero .agent-prompt-box .button {
     width: auto;
-    min-width: 100px;
     justify-self: end;
-    font-size: 14px;
-  }
-
-  .project-hero .install-advanced summary {
-    font-size: 12px;
-    line-height: 1.5;
   }
 }
 
 .project-tools {
   padding-block: 24px;
   border-top: 1px solid var(--line);
-}
-
-.reward-card {
-  padding: 16px;
-}
-
-.reward-card > strong,
-.reward-card > .reward-amount-monthly {
-  margin-block: 12px 8px;
-  font-size: clamp(26px, 3vw, 40px);
 }
 
 @media (max-width: 680px) {
@@ -1761,7 +1555,6 @@ main h2,
   }
 }
 .project-carousel .carousel-project-card {
-  width: 260px;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1770,35 +1563,17 @@ main h2,
   overflow: hidden;
 }
 .project-card-image {
-  height: 164px;
   display: grid;
   place-items: center;
-  background: radial-gradient(ellipse at center, var(--raised), var(--surface));
   border-bottom: 1px solid var(--line);
-}
-.project-card-image .project-avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 20px;
-  object-fit: contain;
-}
-.carousel-project-card .project-card-heading {
-  padding: 18px 18px 0;
-  gap: 12px;
-}
-.carousel-project-card .project-card-heading h3 {
-  font-size: 22px;
 }
 .carousel-project-card .project-card-content {
   display: flex;
   flex: 1;
   flex-direction: column;
-  padding: 12px 18px 18px;
-  gap: 10px;
 }
 .carousel-project-card .project-summary {
   margin: 0;
-  font-size: 13px;
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1808,9 +1583,6 @@ main h2,
 .carousel-project-card .project-bounty {
   margin: auto 0 0;
   padding-top: 12px;
-}
-.carousel-project-card .project-bounty strong {
-  font-size: 26px;
 }
 .carousel-project-card .project-money-state,
 .carousel-project-card .project-review-budget {
@@ -1848,7 +1620,6 @@ main h2,
 }
 .hero-poster .hero-action {
   align-self: flex-end;
-  margin-top: 6px;
   font-size: clamp(32px, 5.6vw, 72px);
   letter-spacing: -0.055em;
 }
@@ -1857,8 +1628,6 @@ main h2,
   grid-template-columns: minmax(180px, 1fr) minmax(0, 680px);
   align-items: start;
   gap: 32px;
-  margin-top: 32px;
-  padding-top: 20px;
   border-top: 1px solid var(--line);
 }
 .hero-poster.hero.shell .hero-copy {
@@ -1893,9 +1662,6 @@ main h2,
   }
   .hero-start {
     grid-template-columns: 1fr;
-    gap: 14px;
-    margin-top: 24px;
-    padding-top: 16px;
   }
 }
 
@@ -1918,18 +1684,8 @@ main h2,
 .project-carousel .carousel-project-card {
   width: 150px;
 }
-.carousel-project-card .project-card-heading {
-  padding: 14px 14px 0;
-}
-.carousel-project-card .project-card-heading h3 {
-  font-size: 20px;
-}
 .carousel-project-card .project-card-content {
-  padding: 10px 14px 14px;
   gap: 8px;
-}
-.carousel-project-card .project-bounty strong {
-  font-size: 23px;
 }
 
 .hero-poster .hero-action {
@@ -2029,10 +1785,6 @@ main h2,
   }
 }
 
-.project-hero-grid > div > .project-info-heading {
-  margin-bottom: 20px;
-}
-
 .project-hero .install-panel {
   margin-top: 20px;
   padding: 12px 16px;
@@ -2055,9 +1807,6 @@ main h2,
   line-height: 1.5;
 }
 @media (max-width: 680px) {
-  .project-hero .install-panel {
-    padding: 12px 0;
-  }
   .project-hero .agent-prompt-box .button {
     min-width: 64px;
     font-size: 13px;
@@ -2084,37 +1833,14 @@ main h2,
   font-size: 12px;
   line-height: 1.5;
 }
-
-.project-hero-grid > div > .project-info-heading {
-  margin-bottom: 12px;
-}
 .project-hero-grid .project-info {
   margin-top: 0;
 }
 .project-hero-grid .project-info .hero-copy {
-  max-width: 65ch;
   margin: 0 0 14px;
-  font-size: 16px;
-  line-height: 1.6;
   color: var(--ink);
 }
-.project-hero-grid .project-terms-line {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.8;
-}
-.project-hero-grid .project-repo-branch {
-  margin: 8px 0 0;
-  font-size: 12px;
-}
-.project-hero-grid .project-repo-branch code {
-  margin-left: 4px;
-  padding: 2px 6px;
-  background: var(--surface);
-  border-radius: 3px;
-}
 .project-hero-grid .project-info + h1 {
-  margin-top: 28px;
   margin-bottom: 0;
 }
 
@@ -2138,13 +1864,6 @@ main h2,
 .payment-history .plain-table-wrap {
   border-block: 0;
 }
-
-.project-hero-grid > div > .project-info-heading {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  margin-bottom: 18px;
-}
 .project-info-heading h2 {
   font-size: 30px;
   line-height: 1.15;
@@ -2159,34 +1878,23 @@ main h2,
   color: var(--orange);
 }
 .project-hero-grid .project-info .hero-copy {
-  max-width: 62ch;
-  margin-bottom: 20px;
-  font-size: 15px;
   font-weight: 400;
-  line-height: 1.6;
 }
 .project-facts {
-  display: flex;
   flex-wrap: wrap;
-  gap: 16px 32px;
   margin: 0;
 }
 .project-facts dt {
-  margin-bottom: 6px;
   color: var(--muted);
-  font-size: 11px;
   line-height: 1.4;
 }
 .project-facts dd {
   margin: 0;
   color: var(--ink);
-  font-size: 13px;
   line-height: 1.5;
 }
 .project-facts dd > span {
-  display: block;
   color: var(--muted);
-  font-size: 11px;
   margin-top: 2px;
 }
 .project-facts code {
@@ -2194,15 +1902,11 @@ main h2,
 }
 .project-summary-links {
   display: flex;
-  gap: 20px;
-  margin-top: 18px;
 }
 .project-summary-links a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--muted);
-  font-size: 12px;
 }
 .project-summary-links a:hover {
   color: var(--orange);
@@ -2211,9 +1915,6 @@ main h2,
   margin-top: 32px;
 }
 @media (max-width: 680px) {
-  .project-facts {
-    gap: 16px 24px;
-  }
   .project-info-heading h2 {
     font-size: 26px;
   }
@@ -2226,29 +1927,9 @@ main h2,
 }
 .project-hero-grid > div > .project-info-heading {
   flex-direction: row;
-  align-items: center;
-  gap: 12px 20px;
-  margin-bottom: 12px;
-}
-.project-hero-grid .project-info-heading h2 {
-  font-size: 32px;
-}
-.project-hero-grid .project-info .hero-copy {
-  max-width: 76ch;
-  margin-bottom: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.project-facts {
-  gap: 12px 28px;
 }
 .project-facts dt {
   margin-bottom: 4px;
-  font-size: 11px;
-}
-.project-summary-links {
-  margin-top: 12px;
-  gap: 16px;
 }
 .project-hero .project-reward-status {
   padding: 16px 18px;
@@ -2265,7 +1946,6 @@ main h2,
 }
 .project-hero .project-contribution-headline {
   max-width: none;
-  margin: 32px 0 0;
   font-size: clamp(28px, 3.5vw, 44px);
   line-height: 1.1;
 }
@@ -2274,14 +1954,8 @@ main h2,
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  .project-hero-grid .project-info-heading h2 {
-    font-size: 28px;
-  }
   .project-hero .project-contribution-headline {
     margin-top: 24px;
-  }
-  .project-hero .project-reward-status {
-    padding: 12px 14px;
   }
 }
 
@@ -2309,9 +1983,6 @@ main h2,
 .project-identity-text > a {
   font-family: inherit;
   font-size: 13px;
-}
-.project-hero-grid .project-info {
-  margin-left: 128px;
 }
 .project-hero-grid .project-info .hero-copy {
   font-size: 16px;
@@ -2362,14 +2033,8 @@ main h2,
   .project-hero-grid .project-info-heading h2 {
     font-size: 30px;
   }
-  .project-hero-grid .project-info {
-    margin-left: 0;
-  }
   .project-hero-grid .project-info .hero-copy {
     font-size: 15px;
-  }
-  .project-facts dt {
-    min-width: 110px;
   }
 }
 
@@ -2445,23 +2110,14 @@ main h2,
   }
   .project-hero .install-panel {
     margin-top: 24px;
-    padding: 16px;
     border: 1px solid var(--line);
     background: var(--surface);
   }
-  .install-panel .agent-prompt-box {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 12px;
-    gap: 12px;
-  }
   .install-panel .agent-prompt-copy {
-    font-size: 12px;
-    line-height: 1.65;
     text-align: left;
   }
   .project-hero .install-panel .agent-prompt-box .button {
     justify-self: end;
-    min-height: 44px;
     padding-inline: 16px;
   }
   .project-hero .install-advanced summary {
@@ -2505,41 +2161,20 @@ main h2,
 
 .project-summary-component {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
   align-items: start;
-  gap: 24px;
 }
 .project-summary-component > .project-avatar {
-  width: 128px;
-  height: 128px;
-  border-radius: 8px;
   order: 0;
 }
 .project-summary-content {
   min-width: 0;
 }
-.project-summary-content .project-info-heading {
-  margin-bottom: 18px;
-}
 .project-summary-content .project-info {
   margin-left: 0;
 }
 @media (max-width: 680px) {
-  .project-summary-component {
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: 16px;
-  }
-  .project-summary-component > .project-avatar {
-    width: 96px;
-    height: 96px;
-  }
-  .project-summary-content .project-info-heading {
-    margin-bottom: 18px;
-  }
   .project-summary-content .project-facts {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 12px;
   }
   .project-summary-content .project-facts > div {
     display: block;
@@ -2553,9 +2188,6 @@ main h2,
   }
   .project-summary-content .project-facts dd > span {
     font-size: 11px;
-  }
-  .project-summary-content .project-info .hero-copy {
-    font-size: 14px;
   }
   .project-summary-content .project-summary-links {
     gap: 12px;
@@ -2597,21 +2229,13 @@ main h2,
   margin-top: 14px;
 }
 @media (max-width: 680px) {
-  .project-summary-component {
-    grid-template-columns: 112px minmax(0, 1fr);
-  }
   .project-summary-component > .project-avatar {
-    min-height: 112px;
     object-position: center;
-  }
-  .project-summary-content {
-    padding: 16px 14px;
   }
   .project-summary-content .project-info-heading h2 {
     font-size: 26px;
   }
   .project-summary-content .project-facts {
-    grid-template-columns: 1fr;
     gap: 12px;
   }
   .project-summary-content .project-facts dt {
@@ -2686,10 +2310,7 @@ main h2,
   margin: 0 0 20px;
 }
 .profile-page .profile-hero {
-  padding: 20px;
   margin-bottom: 24px;
-  background: var(--surface);
-  border-radius: 4px;
   align-items: flex-start;
   gap: 20px;
 }
@@ -2733,12 +2354,6 @@ main h2,
   background: var(--surface);
   border-radius: 4px;
 }
-.profile-page .profile-totals {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 24px 20px;
-  margin: 20px 0 24px;
-}
 .profile-page .profile-totals div {
   min-width: 0;
   padding: 0;
@@ -2752,7 +2367,6 @@ main h2,
 }
 .profile-page .profile-totals span {
   margin-top: 7px;
-  font-size: 11px;
   font-weight: 400;
   line-height: 1.5;
   text-transform: none;
@@ -2809,7 +2423,6 @@ main h2,
 }
 @media (max-width: 680px) {
   .profile-page .profile-hero {
-    padding: 16px;
     gap: 14px;
   }
   .profile-page .profile-hero .avatar-large {
@@ -2821,13 +2434,6 @@ main h2,
   }
   .profile-page .points-panel {
     padding: 16px;
-  }
-  .profile-page .profile-totals {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 16px;
-  }
-  .profile-page .profile-totals strong {
-    font-size: 22px;
   }
   .profile-page .profile-project-block > a {
     padding: 14px;
@@ -3059,8 +2665,6 @@ main h2,
     font-size: 22px;
   }
   .profile-page .profile-activity-heading {
-    align-items: flex-start;
-    flex-direction: column;
     gap: 12px;
   }
   .profile-page .profile-timeline > section {
@@ -3074,20 +2678,14 @@ main h2,
     min-height: 44px;
   }
 }
-
-.profile-points-summary {
-  margin-top: 28px;
-}
 .profile-points-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
 }
 .profile-points-heading h2 {
   margin: 0;
-  font-size: 22px;
 }
 .profile-points-heading > a {
   display: inline-flex;
@@ -3101,32 +2699,26 @@ main h2,
 }
 .profile-points-content {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) auto;
-  gap: 24px;
   align-items: start;
 }
 .profile-points-month strong {
   display: block;
   color: var(--orange);
   font-family: var(--brand-font-data);
-  font-size: 24px;
   line-height: 1.2;
   letter-spacing: -0.04em;
 }
 .profile-points-month > span {
   display: block;
-  margin-top: 7px;
   color: var(--muted);
   font-size: 12px;
 }
 .profile-points-milestones ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 24px;
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 13px;
   line-height: 1.6;
 }
 .profile-points-milestones p {
@@ -3140,10 +2732,6 @@ main h2,
 }
 .profile-points-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: 240px;
 }
 .profile-points-actions button {
   min-height: 40px;
@@ -3158,9 +2746,6 @@ main h2,
 .profile-points-actions > span:empty {
   display: none;
 }
-.profile-points-notes {
-  margin-top: 16px;
-}
 .profile-points-notes p {
   margin: 6px 0 0;
   color: var(--muted);
@@ -3168,21 +2753,7 @@ main h2,
   line-height: 1.6;
 }
 @media (max-width: 680px) {
-  .profile-points-heading {
-    margin-bottom: 16px;
-  }
   .profile-points-heading > a {
-    min-height: 44px;
-  }
-  .profile-points-content {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-  .profile-points-actions {
-    align-items: flex-start;
-    max-width: none;
-  }
-  .profile-points-actions button {
     min-height: 44px;
   }
 }
