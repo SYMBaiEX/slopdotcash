@@ -868,7 +868,7 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     <div className="install-panel" id="start">
       <div className="install-heading">
         <div>
-          <h2>Copy this into your agent.</h2>
+          <h2>Start with your agent.</h2>
         </div>
       </div>
       <AgentPromptBox prompt={projectAgentPrompt(project)} />
@@ -1573,37 +1573,26 @@ function ProjectPage({
     <main>
       <section className="project-hero">
         <div className="shell">
-          <DataNotice state={state} retry={retry} />
+          {state.status !== "ready" ? (
+            <DataNotice state={state} retry={retry} />
+          ) : null}
           <nav className="breadcrumb" aria-label="Breadcrumb">
-            <Link href="/">Projects</Link>
+            <Link href="/projects">Projects</Link>
             <ChevronRight aria-hidden="true" size={14} />
             <span aria-current="page">{project.name}</span>
           </nav>
           <div className="project-hero-grid">
             <div>
-              <h1>
-                {project.status === "paused" ? (
-                  project.name
-                ) : headlineAction ? (
-                  <>
-                    Make money{" "}
-                    <span className="project-headline-action">
-                      {headlineAction}
-                    </span>
-                  </>
-                ) : (
-                  project.headline
-                )}
-              </h1>
+              <div className="project-info-heading">
+                <h2>{project.name}</h2>
+                <ExternalLinkAnchor href={project.links.repository}>
+                  <FolderGit2 aria-hidden="true" size={16} />
+                  {primaryRepository?.displayName ?? "View repository"}
+                  <ExternalLink aria-hidden="true" size={14} />
+                </ExternalLinkAnchor>
+              </div>
+
               <div className="project-info">
-                <div className="project-info-heading">
-                  <h2>{project.name}</h2>
-                  <ExternalLinkAnchor href={project.links.repository}>
-                    <FolderGit2 aria-hidden="true" size={16} />
-                    {primaryRepository?.displayName ?? "View repository"}
-                    <ExternalLink aria-hidden="true" size={14} />
-                  </ExternalLinkAnchor>
-                </div>
                 <p className="hero-copy">{project.description}</p>
                 {project.status === "paused" ? (
                   <ProjectParticipation
@@ -1644,6 +1633,20 @@ function ProjectPage({
                   </p>
                 ) : null}
               </div>
+              <h1>
+                {project.status === "paused" ? (
+                  project.name
+                ) : headlineAction ? (
+                  <>
+                    Make money{" "}
+                    <span className="project-headline-action">
+                      {headlineAction}
+                    </span>
+                  </>
+                ) : (
+                  project.headline
+                )}
+              </h1>
               {project.terms.externalPrize ? (
                 <p className="project-policy-warning">
                   Organizer rules decide eligibility, amount, and payment.
