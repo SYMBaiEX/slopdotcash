@@ -253,13 +253,10 @@ export function ProfileActivity({
           recorded.
         </p>
         <p className="points-meta">
-          Closure penalties start only after maintainers approve a policy
-          version with a future effective date. Closures before that date get no
-          penalty.{" "}
           <a
             href={`${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/docs/slop-product-requirements.md#closure-penalties-and-outcome-ratios`}
           >
-            Read requirement SCR-01
+            Penalty policy
           </a>
         </p>
       </details>

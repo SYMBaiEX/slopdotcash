@@ -91,7 +91,7 @@ test("profiles preserve legacy coverage and expose recorded issue history", asyn
     ),
   ).toBeVisible();
   await expect(
-    profile.getByRole("link", { name: "Read requirement SCR-01" }),
+    profile.getByRole("link", { name: "Penalty policy" }),
   ).toHaveAttribute(
     "href",
     /\/docs\/slop-product-requirements\.md#closure-penalties-and-outcome-ratios$/,
