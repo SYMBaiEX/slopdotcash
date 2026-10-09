@@ -1197,7 +1197,10 @@ main h2,
 }
 
 .project-reward-status {
-  padding-top: 4px;
+  padding: 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .project-reward-status > strong {
@@ -1344,7 +1347,7 @@ main h2,
   }
 
   .project-hero .project-reward-status {
-    padding: 0;
+    padding: 16px;
     text-align: left;
   }
 
