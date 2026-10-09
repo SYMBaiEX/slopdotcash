@@ -2372,3 +2372,12 @@ main h2,
     min-width: 110px;
   }
 }
+
+.project-hero .project-contribution-headline {
+  margin: 0 0 28px;
+}
+@media (max-width: 680px) {
+  .project-hero .project-contribution-headline {
+    margin: 0 0 24px;
+  }
+}

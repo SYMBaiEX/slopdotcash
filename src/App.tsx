@@ -1581,6 +1581,20 @@ function ProjectPage({
             <ChevronRight aria-hidden="true" size={14} />
             <span aria-current="page">{project.name}</span>
           </nav>
+          <h1 className="project-contribution-headline">
+            {project.status === "paused" ? (
+              project.name
+            ) : headlineAction ? (
+              <>
+                Make money{" "}
+                <span className="project-headline-action">
+                  {headlineAction}
+                </span>
+              </>
+            ) : (
+              project.headline
+            )}
+          </h1>
           <div className="project-hero-grid">
             <div>
               <div className="project-info-heading">
@@ -1715,20 +1729,7 @@ function ProjectPage({
               </aside>
             )}
           </div>
-          <h1 className="project-contribution-headline">
-            {project.status === "paused" ? (
-              project.name
-            ) : headlineAction ? (
-              <>
-                Make money{" "}
-                <span className="project-headline-action">
-                  {headlineAction}
-                </span>
-              </>
-            ) : (
-              project.headline
-            )}
-          </h1>
+
           {project.status !== "paused" && state.status === "ready" ? (
             <ProjectParticipation
               project={project}
