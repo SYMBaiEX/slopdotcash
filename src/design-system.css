@@ -1933,7 +1933,7 @@ main h2,
 }
 
 .project-carousel .carousel-project-card {
-  width: 180px;
+  width: 150px;
 }
 .carousel-project-card .project-card-heading {
   padding: 14px 14px 0;
@@ -1947,4 +1947,49 @@ main h2,
 }
 .carousel-project-card .project-bounty strong {
   font-size: 23px;
+}
+
+.hero-poster .hero-action {
+  margin-top: 20px;
+}
+.hero-start {
+  margin-top: 48px;
+  padding-top: 28px;
+}
+.carousel-project-card .project-card-heading {
+  padding: 12px 10px 0;
+  gap: 6px;
+}
+.carousel-project-card .project-card-heading h3 {
+  font-size: 16px;
+}
+.carousel-project-card .project-card-heading > svg {
+  width: 14px;
+  flex-shrink: 0;
+}
+.carousel-project-card .project-card-content {
+  padding: 8px 10px 12px;
+}
+.carousel-project-card .project-summary {
+  font-size: 12px;
+}
+.carousel-project-card .project-bounty {
+  flex-wrap: wrap;
+  gap: 2px 4px;
+}
+.carousel-project-card .project-bounty strong {
+  font-size: 19px;
+}
+.carousel-project-card .project-bounty span {
+  font-size: 11px;
+}
+@media (max-width: 680px) {
+  .hero-poster .hero-action {
+    margin-top: 14px;
+  }
+  .hero-start {
+    margin-top: 32px;
+    padding-top: 20px;
+    gap: 20px;
+  }
 }
