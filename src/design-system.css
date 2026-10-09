@@ -1129,7 +1129,7 @@ label {
 
 .points-table th {
   padding: 0 12px 14px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0;
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
@@ -1137,7 +1137,7 @@ label {
 
 .points-table td {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0;
   font-size: 15px;
 }
 
