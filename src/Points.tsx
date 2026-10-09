@@ -852,10 +852,12 @@ export function ContributorStandings({
   retryScore,
   projectId,
   compact = false,
+  preview = false,
   title,
 }: {
   projectId?: string;
   compact?: boolean;
+  preview?: boolean;
   title?: string;
   scoreState?: DataState;
   retryScore?: () => void;
@@ -972,6 +974,177 @@ export function ContributorStandings({
     page,
     Math.max(0, Math.ceil(rows.length / pageSize) - 1),
   );
+  if (preview) {
+    const available =
+      sort === "points"
+        ? state.status === "ready"
+        : scores.status === "ready" &&
+          (sort !== "score" || projection.scoreAvailable);
+    const selectedLabel =
+      sort === "score"
+        ? "Slop Score"
+        : sort === "points"
+          ? "Points"
+          : "Money received · USDC";
+    return (
+      <section
+        className="top-sloperators"
+        aria-labelledby="top-sloperators-title"
+      >
+        <header className="top-sloperators-heading">
+          <div>
+            <p className="top-sloperators-eyebrow">The people shipping</p>
+            <h2 id="top-sloperators-title">Top Sloperators</h2>
+            <p>Accepted open-source work, ranked in public.</p>
+          </div>
+          <a
+            className="button secondary-button"
+            href={`/points${window.location.search}`}
+          >
+            Full standings <span aria-hidden="true">↗</span>
+          </a>
+        </header>
+        <div className="top-sloperators-toolbar">
+          <div
+            className="top-sloperators-sorts"
+            role="group"
+            aria-label="Rank contributors by"
+          >
+            {(
+              [
+                ["score", "Slop Score"],
+                ["points", "Points"],
+                ["money", "Money received"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={sort === value}
+                onClick={() => setSort(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <label className="top-sloperators-period">
+            Period
+            <select
+              value={period}
+              onChange={(event) => setPeriod(event.target.value)}
+            >
+              <option value="month">This month (UTC)</option>
+              <option value="lifetime">Recorded history</option>
+            </select>
+          </label>
+        </div>
+        <DataNotice state={scores} retry={retryScore ?? retryLoadedScore} />
+        {sort === "points" ? <Notice /> : null}
+        {project || cohort !== "all" || query ? (
+          <p className="points-meta">
+            Filtered view:{" "}
+            {project ? findProject(project)?.name : "all projects"}
+            {cohort !== "all" ? " · new contributors" : ""}
+            {query ? ` · matching “${query}”` : ""}.{" "}
+            <a href="/#leaderboard">Show all</a>
+          </p>
+        ) : null}
+        {available ? (
+          <>
+            <div className="top-sloperators-columns" aria-hidden="true">
+              <span>Contributor</span>
+              <span>{selectedLabel}</span>
+            </div>
+            <ol className="top-sloperators-list">
+              {rows.slice(0, 10).map((member) => (
+                <li key={member.actor.id}>
+                  <span
+                    className="top-sloperator-rank"
+                    aria-label={`Rank ${ranks.get(member.actor.id)}`}
+                  >
+                    {ranks.get(member.actor.id)}
+                  </span>
+                  <a
+                    className="top-sloperator-person"
+                    href={`/contributors/${encodeURIComponent(member.actor.login)}`}
+                  >
+                    <img
+                      alt=""
+                      height={40}
+                      width={40}
+                      loading="lazy"
+                      src={`https://avatars.githubusercontent.com/${encodeURIComponent(member.actor.login)}?size=80`}
+                      onError={(event) => {
+                        event.currentTarget.hidden = true;
+                      }}
+                    />
+                    <span>
+                      <strong>{member.actor.login}</strong>
+                      <small>
+                        {sort !== "score"
+                          ? `${member.score === null ? scoreMissing : formatScore(member.score)} score · `
+                          : ""}
+                        {sort !== "points"
+                          ? `${member.points === null ? pointsMissing : member.points.toLocaleString()} points`
+                          : ""}
+                        {sort === "score" ? " · " : ""}
+                        {sort !== "money"
+                          ? `${member.money === null ? scoreMissing : formatMicroUsdc(member.money.toString())} received`
+                          : ""}
+                      </small>
+                    </span>
+                  </a>
+                  <div className="top-sloperator-value">
+                    <strong>
+                      {sort === "score"
+                        ? member.score === null
+                          ? scoreMissing
+                          : formatScore(member.score)
+                        : sort === "points"
+                          ? member.points === null
+                            ? pointsMissing
+                            : member.points.toLocaleString()
+                          : member.money === null
+                            ? scoreMissing
+                            : formatMicroUsdc(member.money.toString())}
+                    </strong>
+                    <span>{selectedLabel}</span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {rows.length === 0 ? (
+              <p>No recorded contributions match this view.</p>
+            ) : null}
+          </>
+        ) : scores.status === "ready" && sort === "score" ? (
+          <p>No score records cover this period. Select Recorded history.</p>
+        ) : null}
+        <footer className="top-sloperators-footer">
+          <p>
+            Score measures accepted work. Points record recognition. Money
+            received is verified USDC. Equal values share a rank.
+          </p>
+          <details>
+            <summary>Source coverage &amp; earning rules</summary>
+            {scores.status === "ready" ? (
+              <p>
+                Score records: {scores.snapshot.window.from} to{" "}
+                {scores.snapshot.window.to}, plus closed cycles.{" "}
+                {period === "month"
+                  ? `Selected month: ${new Date().toISOString().slice(0, 7)} (UTC).`
+                  : "Recorded history; coverage may have gaps."}
+              </p>
+            ) : null}
+            <p>
+              <a href="/points">Full standings and earning rules</a> ·{" "}
+              <a href="/points#people">Find people</a>
+            </p>
+          </details>
+        </footer>
+      </section>
+    );
+  }
   return (
     <section
       className="points-panel"
