@@ -1540,11 +1540,11 @@ function ProjectPage({
       <section className="project-hero">
         <div className="shell">
           <DataNotice state={state} retry={retry} />
-          <p className="breadcrumb">
+          <nav className="breadcrumb" aria-label="Breadcrumb">
             <Link href="/">Projects</Link>
-            <span>/</span>
-            {project.name}
-          </p>
+            <ChevronRight aria-hidden="true" size={14} />
+            <span aria-current="page">{project.name}</span>
+          </nav>
           <div className="project-hero-grid">
             <div>
               <h1>

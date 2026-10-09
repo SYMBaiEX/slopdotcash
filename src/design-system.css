@@ -1138,6 +1138,19 @@ main h2,
 
 .breadcrumb {
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.breadcrumb [aria-current="page"] {
+  color: var(--orange);
+  font-weight: 700;
+}
+
+.breadcrumb > svg {
+  flex-shrink: 0;
+  color: var(--muted);
 }
 
 .project-hero-grid,
@@ -1162,8 +1175,21 @@ main h2,
 }
 
 .project-hero .install-panel {
-  margin-top: 32px;
-  padding: 24px;
+  margin-top: 24px;
+  padding: 20px;
+}
+
+.project-hero .install-heading {
+  margin-bottom: 14px;
+}
+
+.project-hero .install-advanced {
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.project-hero > .shell > .data-notice {
+  margin-bottom: 20px;
 }
 
 .project-hero .install-panel h2 {
@@ -1171,19 +1197,19 @@ main h2,
 }
 
 .project-info {
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .project-info-heading {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
+  gap: 8px 16px;
 }
 
 .project-info-heading h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: clamp(28px, 3vw, 36px);
 }
 
 .project-info-heading a {
@@ -1196,11 +1222,17 @@ main h2,
 }
 
 .project-info .hero-copy {
-  margin-top: 12px;
+  margin-block: 8px;
+  font-size: 15px;
+}
+
+.project-info .project-terms-line {
+  margin-top: 8px;
+  font-size: 13px;
 }
 
 .project-repo-branch {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
   font-size: 13px;
 }
