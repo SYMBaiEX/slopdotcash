@@ -1,13 +1,13 @@
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
-import { readBoundedJson } from "../src/lib/browser-json";
 import {
   assertProfiles,
   type ProfileIndex,
   type ProfileRecord,
 } from "../src/lib/profiles";
 import { TARGET_REPOSITORIES } from "../src/lib/repositories.mjs";
+import { GitHubGraphqlClient } from "./generate-leaderboard";
 import {
   type CensusRequest,
   collectProfileIssues,
@@ -46,7 +46,7 @@ if (values.live && values.input)
   throw new Error("Choose live collection or a profile input file.");
 const output = "public/data/profiles.json";
 const seed = "data/profiles/seed.json";
-const query = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){id pullRequests(first:100,after:$after,orderBy:{field:CREATED_AT,direction:ASC}){totalCount pageInfo{hasNextPage endCursor} nodes{id state author{__typename login avatarUrl ... on User{id}}}}}rateLimit{remaining resetAt}}`;
+const query = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){id pullRequests(first:100,after:$after,orderBy:{field:CREATED_AT,direction:ASC}){totalCount pageInfo{hasNextPage endCursor} nodes{id state author{__typename login avatarUrl ... on User{id}}}}}rateLimit{cost limit remaining resetAt}}`;
 async function publish(path: string, value: ProfileIndex) {
   await mkdir(path.slice(0, path.lastIndexOf("/")), { recursive: true });
   await writeFile(`${path}.tmp`, `${JSON.stringify(value)}\n`);
@@ -63,29 +63,11 @@ if (values.live) {
     );
   const previous = JSON.parse(await readFile(values.previous, "utf8"));
   assertProfiles(previous);
+  const client = new GitHubGraphqlClient(token);
   const request: CensusRequest = async <T>(
     query: string,
     variables: Record<string, string | null>,
-  ): Promise<T> => {
-    const response = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ query, variables }),
-      signal: AbortSignal.timeout(60000),
-    });
-    if (!response.ok) throw Error(`Profile census GitHub ${response.status}`);
-    const value = (await readBoundedJson(
-      response,
-      4 * 1024 * 1024,
-      "profile census",
-    )) as { errors?: unknown; data?: T & { rateLimit: { remaining: number } } };
-    if (value.errors || !value.data || value.data.rateLimit.remaining < 100)
-      throw Error("Incomplete profile census or insufficient GitHub budget");
-    return value.data;
-  };
+  ): Promise<T> => (await client.execute(query, variables)) as T;
   const result: ProfileIndex = {
     schemaVersion: "2",
     startedAt: new Date().toISOString(),

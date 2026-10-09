@@ -52,7 +52,7 @@ const kinds = {
 const itemTypes =
   "[CLOSED_EVENT,REOPENED_EVENT,MARKED_AS_DUPLICATE_EVENT,UNMARKED_AS_DUPLICATE_EVENT,TRANSFERRED_EVENT]";
 const events = `totalCount pageInfo{hasNextPage endCursor} nodes{__typename ... on ClosedEvent{id createdAt stateReason duplicateOf{... on Issue{id}}} ... on ReopenedEvent{id createdAt stateReason} ... on MarkedAsDuplicateEvent{id createdAt canonical{... on Issue{id}}} ... on UnmarkedAsDuplicateEvent{id createdAt canonical{... on Issue{id}}} ... on TransferredEvent{id createdAt}}`;
-const query = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){id issues(first:100,after:$after,orderBy:{field:CREATED_AT,direction:ASC}){totalCount pageInfo{hasNextPage endCursor} nodes{id number createdAt state stateReason author{__typename login avatarUrl ... on User{id}} timelineItems(first:5,itemTypes:${itemTypes}){${events}}}}}rateLimit{remaining}}`;
+const query = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){id issues(first:100,after:$after,orderBy:{field:CREATED_AT,direction:ASC}){totalCount pageInfo{hasNextPage endCursor} nodes{id number createdAt state stateReason author{__typename login avatarUrl ... on User{id}} timelineItems(first:5,itemTypes:${itemTypes}){${events}}}}}rateLimit{cost limit remaining resetAt}}`;
 
 /** Collect public outcome facts; preserve inaccessible prior records as coverage gaps. */
 export async function collectProfileIssues(
@@ -106,7 +106,7 @@ export async function collectProfileIssues(
           const continuation = await request<{
             node: { timelineItems: Page<Event> } | null;
           }>(
-            `query($id:ID!,$after:String){node(id:$id){... on Issue{timelineItems(first:100,after:$after,itemTypes:${itemTypes}){${events}}}}rateLimit{remaining}}`,
+            `query($id:ID!,$after:String){node(id:$id){... on Issue{timelineItems(first:100,after:$after,itemTypes:${itemTypes}){${events}}}}rateLimit{cost limit remaining resetAt}}`,
             { id: source.id, after: cursor },
           );
           if (!continuation.node)
