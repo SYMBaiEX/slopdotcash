@@ -834,33 +834,19 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     <div className="install-panel" id="start">
       <div className="install-heading">
         <div>
-          <p className="project-eyebrow">Contribute with any coding agent</p>
-          <h2>Get started</h2>
-          <ol className="project-contribution-steps">
-            <li>
-              <strong>Choose work</strong>
-              <span>
-                Read the project rules and find unclaimed work on GitHub.
-              </span>
-            </li>
-            <li>
-              <strong>Ship a PR</strong>
-              <span>
-                Make the change, test it, and disclose your agent and model.
-              </span>
-            </li>
-            <li>
-              <strong>Maintainer review</strong>
-              <span>
-                Accepted work earns score. Payments require funding and
-                approval.
-              </span>
-            </li>
-          </ol>
-          <p>Paste this into your agent to begin.</p>
+          <p className="project-eyebrow">Start contributing</p>
+          <h2>Your agent. This project.</h2>
+          <p>
+            Copy the prompt into your coding agent. It will read the rules and
+            help you choose available work on GitHub.
+          </p>
         </div>
       </div>
       <AgentPromptBox prompt={projectAgentPrompt(project)} />
+      <p className="project-outcome-note">
+        Submit a tested PR. Maintainers decide what merges; accepted work earns
+        score. Payment requires separate funding and approval.
+      </p>
       <details className="install-advanced">
         <summary>Installation, disclosures &amp; optional receipts</summary>
         <p className="install-note">
@@ -1533,6 +1519,14 @@ function ProjectFundingPage({
   );
 }
 
+function projectSectionFromHash() {
+  return window.location.hash === "#contributors"
+    ? "contributors"
+    : ["#project-records", "#project-tools"].includes(window.location.hash)
+      ? "records"
+      : "contribute";
+}
+
 function ProjectPage({
   project,
   state,
@@ -1542,6 +1536,12 @@ function ProjectPage({
   state: DataState;
   retry: () => void;
 }) {
+  const [section, setSection] = useState(projectSectionFromHash);
+  useEffect(() => {
+    const syncSection = () => setSection(projectSectionFromHash());
+    window.addEventListener("hashchange", syncSection);
+    return () => window.removeEventListener("hashchange", syncSection);
+  }, []);
   const view =
     state.status === "ready"
       ? state.views.find((candidate) => candidate.project.id === project.id)
@@ -1593,12 +1593,44 @@ function ProjectPage({
             ) : null}
           </header>
           <nav className="project-section-nav" aria-label="Project sections">
-            <a href="#start">Contribute</a>
-            {view ? <a href="#contributors">Contributors</a> : null}
-            <a href="#project-records">Records</a>
-            <a href="#project-tools">Funding &amp; management</a>
+            <a
+              href="#start"
+              aria-current={section === "contribute" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                window.history.pushState(null, "", "#start");
+                setSection("contribute");
+              }}
+            >
+              Contribute
+            </a>
+            <a
+              href="#contributors"
+              aria-current={section === "contributors" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                window.history.pushState(null, "", "#contributors");
+                setSection("contributors");
+              }}
+            >
+              Contributors
+            </a>
+            <a
+              href="#project-records"
+              aria-current={section === "records" ? "page" : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                window.history.pushState(null, "", "#project-records");
+                setSection("records");
+              }}
+            >
+              Records &amp; funding
+            </a>
           </nav>
-          <div className="project-hero-grid project-start-grid">
+          <div
+            className="project-hero-grid project-start-grid"
+            hidden={section !== "contribute"}
+          >
             <div>
               <ProjectParticipation
                 project={project}
@@ -1679,18 +1711,33 @@ function ProjectPage({
             Activity for this project has not been collected yet.
           </p>
         ) : null}
-        {view && state.status === "ready" ? (
-          <ProjectLeaderboard
-            state={state}
-            retry={retry}
-            updatedAt={state.snapshot.generatedAt}
-            view={view}
-          />
-        ) : null}
-        <div id="project-records">
+        <div hidden={section !== "contributors"}>
+          {view && state.status === "ready" ? (
+            <ProjectLeaderboard
+              state={state}
+              retry={retry}
+              updatedAt={state.snapshot.generatedAt}
+              view={view}
+            />
+          ) : null}
+          {!view ? (
+            <p className="data-notice">
+              {state.status === "loading"
+                ? "Loading contributors…"
+                : state.status !== "ready"
+                  ? "Contributor records unavailable. Retry loading above."
+                  : "No contributor records are available for this project yet."}
+            </p>
+          ) : null}
+        </div>
+        <div id="project-records" hidden={section !== "records"}>
           <ProjectPaymentHistory project={project} state={state} />
         </div>
-        <details className="project-tools" id="project-tools">
+        <details
+          className="project-tools"
+          id="project-tools"
+          hidden={section !== "records"}
+        >
           <summary>Funding &amp; maintainer tools</summary>
           <ProjectFunding project={project} />
           <div className="project-links">

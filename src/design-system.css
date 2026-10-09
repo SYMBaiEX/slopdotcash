@@ -1207,44 +1207,28 @@ main h2,
   color: var(--orange);
 }
 
+.project-section-nav a[aria-current="page"] {
+  color: var(--ink);
+  box-shadow: inset 0 -3px var(--orange);
+}
+
+.project-start-grid[hidden],
+.project-tools[hidden] {
+  display: none;
+}
+
+.project-outcome-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 20px;
+  max-width: 65ch;
+}
+
 .project-eyebrow {
   color: var(--muted);
   font-size: 12px;
   margin: 0 0 12px;
-}
-
-.project-contribution-steps {
-  list-style: none;
-  counter-reset: contribution-step;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  margin: 24px 0;
-  padding: 0;
-}
-
-.project-contribution-steps li {
-  counter-increment: contribution-step;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.project-contribution-steps li::before {
-  content: "0" counter(contribution-step);
-  display: block;
-  margin-bottom: 12px;
-  color: var(--orange);
-  font-family: var(--brand-font-data);
-}
-
-.project-contribution-steps strong,
-.project-contribution-steps span {
-  display: block;
-}
-
-.project-contribution-steps span {
-  color: var(--muted);
-  margin-top: 6px;
 }
 
 .project-start-grid .reward-card > strong {
@@ -1259,21 +1243,6 @@ main h2,
   .project-repository-action {
     position: static;
     margin-top: 20px;
-  }
-
-  .project-contribution-steps {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .project-contribution-steps li {
-    padding-left: 36px;
-    position: relative;
-  }
-
-  .project-contribution-steps li::before {
-    position: absolute;
-    left: 0;
   }
 }
 
