@@ -517,7 +517,7 @@ function GlobalLeaderboard() {
       className="section shell home-leaderboard-section"
       id="leaderboard"
     >
-      <ContributorStandings preview />
+      <ContributorStandings compact title="Top Sloperators" />
     </section>
   );
 }
