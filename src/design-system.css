@@ -1598,7 +1598,9 @@ main
   .project-carousel-window {
     overflow-x: auto;
   }
-  .project-carousel-group[aria-hidden] {
+  .project-carousel-group[aria-hidden],
+  .project-carousel-slot[aria-hidden],
+  .carousel-actions .carousel-motion-toggle {
     display: none;
   }
 }
@@ -1738,7 +1740,9 @@ main
 
 .carousel-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: 12px;
   margin-top: 16px;
 }
 .projects-directory {
@@ -2250,14 +2254,9 @@ main
   }
   .install-panel .agent-prompt-copy {
     min-width: 0;
-    overflow-x: auto;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     font-size: 12px;
     line-height: 1.5;
-    scrollbar-width: thin;
-  }
-  .install-panel .agent-prompt-copy code {
-    white-space: nowrap;
   }
   .project-hero .install-panel .agent-prompt-box .button {
     min-width: 64px;
@@ -2831,4 +2830,26 @@ main
     flex-direction: row;
     align-items: center;
   }
+}
+
+.project-carousel-track.is-paused {
+  animation-play-state: paused;
+}
+.carousel-project-card .project-tier-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.directory-tier .project-tier-label {
+  display: none;
+}
+.directory-tier + .directory-tier {
+  margin-top: 40px;
+}
+.directory-tier h2 {
+  margin: 0 0 16px;
+}
+.project-carousel-slot {
+  display: flex;
 }

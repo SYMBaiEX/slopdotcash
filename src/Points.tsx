@@ -403,7 +403,7 @@ function Notice() {
     <p className="points-meta">
       Recorded history · updated{" "}
       {new Date(state.journal.generatedAt).toLocaleString()}
-      {Date.now() - Date.parse(state.journal.generatedAt) > 8 * 3600000
+      {stale(state.journal)
         ? " · Stale: the next verified update is pending."
         : ""}
     </p>
@@ -1014,10 +1014,10 @@ export function ContributorStandings({
       aria-label={title ?? "Contributor standings"}
     >
       <h2>{title ?? "Contributor standings"}</h2>
-      {!scoreState && scores.status !== "ready" ? (
+      {!scoreState ? (
         <DataNotice state={scores} retry={retryScore ?? retryLoadedScore} />
       ) : null}
-      {state.status !== "ready" ? <Notice /> : null}
+      {state.status !== "ready" || stale(state.journal) ? <Notice /> : null}
       <details className="standings-data-details">
         <summary>
           <span>Data freshness &amp; coverage</span>
@@ -1081,8 +1081,7 @@ export function ContributorStandings({
                   {coverageDate(state.journal.generatedAt)}
                 </time>
                 <small>
-                  {Date.now() - Date.parse(state.journal.generatedAt) >
-                  8 * 3600000
+                  {stale(state.journal)
                     ? "Stale: next verified update pending."
                     : "Recorded history."}
                 </small>
@@ -1292,6 +1291,7 @@ export function ContributorStandings({
             <dd>Verified, finalized USDC principal.</dd>
           </div>
         </dl>
+        <p className="points-meta">Equal values share a rank.</p>
         {compact ? (
           <div className="standings-guide-bottom">
             <nav

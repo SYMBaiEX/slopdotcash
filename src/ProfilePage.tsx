@@ -210,9 +210,12 @@ export function ProfilePage({
     ?.contributor.wallet;
   return (
     <main className="shell route-main profile-page">
-      <p className="breadcrumb">
-        <Link href="/points">contributor</Link>/<span>{actor.login}</span>
-      </p>
+      <DataNotice state={state} retry={retry} />
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href="/points">Contributors</Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{actor.login}</span>
+      </nav>
       <ContributorIdentity actor={actor}>
         <details className="profile-wallet-details">
           <summary>Payout wallet</summary>

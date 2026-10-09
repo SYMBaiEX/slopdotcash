@@ -21,6 +21,7 @@ import { CycleArchivePage, CyclePage } from "./CyclePages";
 import { EarningsPage } from "./Earnings";
 import { EscrowFunding } from "./EscrowFunding";
 import {
+  type FundingDataState,
   formatFundingAmount,
   formatFundingMinor,
   fundingTransactionExplorer,
@@ -36,6 +37,7 @@ import { browserDeployment } from "./lib/browser-deployment";
 import { CONTACT_EMAIL, CONTACT_MAILTO } from "./lib/contact";
 import { copyText } from "./lib/copy-text";
 import { currentProjectFundingRecords } from "./lib/funding";
+import { commitmentVerifiedNetMinor } from "./lib/funding-commitment";
 import { homeProjects } from "./lib/home-projects";
 import { createInstallCommand } from "./lib/install-command";
 import {
@@ -371,11 +373,43 @@ function ProjectOwnerAvatar({
 
 function ProjectCard({
   project,
+  funding,
   repeated = false,
 }: {
   project: ProjectDefinition;
+  funding: FundingDataState;
   repeated?: boolean;
 }) {
+  const vaults =
+    project.funding.commitments?.filter(
+      (instrument) =>
+        instrument.kind === "squads-v4-vault" && instrument.replacedAt === null,
+    ) ?? [];
+  const vaultRecords =
+    funding.status === "ready"
+      ? funding.index.commitments.filter(
+          (record) =>
+            record.projectId === project.id &&
+            "vault" in record.instrument &&
+            vaults.some(
+              (vault) =>
+                vault.kind === "squads-v4-vault" &&
+                "vault" in record.instrument &&
+                vault.vault === record.instrument.vault,
+            ),
+        )
+      : [];
+  const vaultBalance =
+    vaults.length === 0
+      ? "Unavailable"
+      : funding.status === "loading"
+        ? "Loading…"
+        : funding.status === "error" ||
+            !vaultRecords.some((record) => record.state === "verified-on-chain")
+          ? "Unavailable"
+          : formatMicroUsdc(
+              commitmentVerifiedNetMinor(vaultRecords).toString(),
+            );
   const amount =
     project.reward.kind === "monthly-pool"
       ? monthlyPoolCapLabel(project.reward)
@@ -395,6 +429,9 @@ function ProjectCard({
         <ArrowRight aria-hidden="true" />
       </div>
       <div className="project-card-content">
+        <small className="project-tier-label">
+          {project.listingTier === "featured" ? "Featured" : "Community"}
+        </small>
         <p className="project-summary">{project.description}</p>
         <p className="project-bounty">
           <strong>{amount}</strong>
@@ -402,6 +439,11 @@ function ProjectCard({
             <span>/mo target</span>
           ) : null}
         </p>
+        <small className="project-money-state">
+          {project.reward.kind === "monthly-pool"
+            ? `Vault: ${vaultBalance}`
+            : "External prize"}
+        </small>
         {project.reward.reviewBudget ? (
           <small className="project-review-budget">
             + {reviewBudgetLabel(project.reward.reviewBudget)}
@@ -418,7 +460,7 @@ function GlobalLeaderboard() {
       className="section shell home-leaderboard-section"
       id="leaderboard"
     >
-      <ContributorStandings compact title="Top Sloperators" />
+      <ContributorStandings compact title="Top sloperators" />
     </section>
   );
 }
@@ -433,10 +475,26 @@ function ProjectCarousel({
 }: {
   projects: readonly ProjectDefinition[];
 }) {
+  const [funding] = useFundingIndex();
+  const [paused, setPaused] = useState(false);
+  if (projects.length === 0) {
+    return (
+      <p className="data-notice">
+        No project is open for contributions now.{" "}
+        <Link href="/projects">See all projects</Link>
+      </p>
+    );
+  }
+  // Fill the visible strip with copies; only the first copy is announced or
+  // focusable, so each project appears once to assistive technology.
   const loopProjects = Array.from(
-    { length: projects.length ? Math.ceil(8 / projects.length) : 0 },
+    { length: Math.ceil(8 / projects.length) },
     (_, copy) =>
-      projects.map((project) => ({ project, key: `${project.id}-${copy}` })),
+      projects.map((project) => ({
+        project,
+        copy,
+        key: `${project.id}-${copy}`,
+      })),
   ).flat();
   return (
     <section
@@ -446,25 +504,43 @@ function ProjectCarousel({
     >
       <div className="project-carousel-window">
         <div
-          className="project-carousel-track"
+          className={`project-carousel-track${paused ? " is-paused" : ""}`}
           style={{
             animationDuration: `${Math.max(30, loopProjects.length * 6)}s`,
           }}
         >
-          {[false, true].map((repeated) => (
+          {[false, true].map((repeatedGroup) => (
             <div
               className="project-carousel-group"
-              key={String(repeated)}
-              aria-hidden={repeated || undefined}
+              key={String(repeatedGroup)}
+              aria-hidden={repeatedGroup || undefined}
             >
-              {loopProjects.map(({ project, key }) => (
-                <ProjectCard key={key} project={project} repeated={repeated} />
+              {loopProjects.map(({ project, copy, key }) => (
+                <div
+                  aria-hidden={(!repeatedGroup && copy > 0) || undefined}
+                  className="project-carousel-slot"
+                  key={key}
+                >
+                  <ProjectCard
+                    project={project}
+                    funding={funding}
+                    repeated={repeatedGroup || copy > 0}
+                  />
+                </div>
               ))}
             </div>
           ))}
         </div>
       </div>
       <div className="carousel-actions">
+        <button
+          aria-pressed={paused}
+          className="button secondary-button carousel-motion-toggle"
+          onClick={() => setPaused(!paused)}
+          type="button"
+        >
+          {paused ? "Play motion" : "Pause motion"}
+        </button>
         <Link className="button secondary-button" href="/projects">
           All projects <ArrowRight aria-hidden="true" />
         </Link>
@@ -474,6 +550,7 @@ function ProjectCarousel({
 }
 
 function ProjectsPage() {
+  const [funding] = useFundingIndex();
   return (
     <main className="shell projects-directory">
       <div className="home-section-heading">
@@ -487,19 +564,44 @@ function ProjectsPage() {
           <Plus aria-hidden="true" /> Add a project
         </Link>
       </div>
-      <div className="directory-grid">
-        {PROJECTS.map((project) => (
-          <div className="directory-project" key={project.id}>
-            <ProjectCard project={project} />
-            <p className="directory-state">
-              {project.status === "paused" ? "Paused · listed only" : "Active"}
-              {project.reward.paymentMode === "disabled"
-                ? " · Payments disabled"
-                : ""}
-            </p>
-          </div>
-        ))}
-      </div>
+      {(
+        [
+          ["featured", "Featured"],
+          ["community", "Community"],
+        ] as const
+      ).map(([tier, label]) => {
+        const projects = PROJECTS.filter(
+          (project) => project.listingTier === tier,
+        );
+        return (
+          <section
+            aria-labelledby={`directory-${tier}`}
+            className="directory-tier"
+            key={tier}
+          >
+            <h2 id={`directory-${tier}`}>{label}</h2>
+            {projects.length === 0 ? (
+              <p className="directory-state">No {label} projects are listed.</p>
+            ) : (
+              <div className="directory-grid">
+                {projects.map((project) => (
+                  <div className="directory-project" key={project.id}>
+                    <ProjectCard project={project} funding={funding} />
+                    <p className="directory-state">
+                      {project.status === "paused"
+                        ? "Paused · listed only"
+                        : "Active"}
+                      {project.reward.paymentMode === "disabled"
+                        ? " · Payments disabled"
+                        : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </main>
   );
 }
@@ -1588,9 +1690,7 @@ function ProjectPage({
     <main>
       <section className="project-hero">
         <div className="shell">
-          {state.status !== "ready" ? (
-            <DataNotice state={state} retry={retry} />
-          ) : null}
+          <DataNotice state={state} retry={retry} />
           <nav className="breadcrumb" aria-label="Breadcrumb">
             <Link href="/projects">Projects</Link>
             <ChevronRight aria-hidden="true" size={14} />

@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { browserDeployment } from "./lib/browser-deployment";
 import { fetchWithDeadline, readBoundedJson } from "./lib/browser-json";
 import type { CycleIndex } from "./lib/cycle-index";
@@ -292,7 +292,9 @@ function ProfileTimeline({
   }>;
   direct: Array<{ date: string; amount: bigint; href: string; name: string }>;
 }) {
-  const [requestedPage, setPage] = useState(0);
+  const [requestedPage, setRequestedPage] = useState(0);
+  const previousButton = useRef<HTMLButtonElement>(null);
+  const nextButton = useRef<HTMLButtonElement>(null);
   const unmatchedAwards = new Map(awards.map((award) => [award.key, award]));
   const records = [
     ...work.map((event) => {
@@ -357,6 +359,12 @@ function ProfileTimeline({
   const pageCount = Math.ceil(records.length / pageSize);
   const page = Math.min(requestedPage, pageCount - 1);
   const first = page * pageSize;
+  // A boundary page disables the pressed button; keep keyboard focus nearby.
+  const setPage = (next: number) => {
+    setRequestedPage(next);
+    if (next === 0) nextButton.current?.focus();
+    else if (next === pageCount - 1) previousButton.current?.focus();
+  };
   const groups = new Map<string, typeof records>();
   for (const record of records.slice(first, first + pageSize)) {
     const day = record.date?.slice(0, 10) ?? "";
@@ -408,6 +416,7 @@ function ProfileTimeline({
           </p>
           <div>
             <button
+              ref={previousButton}
               type="button"
               disabled={page === 0}
               onClick={() => setPage(page - 1)}
@@ -418,6 +427,7 @@ function ProfileTimeline({
               Page {page + 1} of {pageCount}
             </span>
             <button
+              ref={nextButton}
               type="button"
               disabled={page === pageCount - 1}
               onClick={() => setPage(page + 1)}
