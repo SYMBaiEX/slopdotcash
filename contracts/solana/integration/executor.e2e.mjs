@@ -41,6 +41,9 @@ const program = new Program(
   provider,
 );
 const hash = (s) => createHash("sha256").update(s).digest();
+// A public test cluster keeps accounts between runs; a run salt gives each
+// run new project accounts. Local runs leave it empty.
+const RUN = process.env.SLOP_E2E_RUN ?? "";
 const bn = (x) => new BN(String(x));
 const pda = (...seeds) =>
   PublicKey.findProgramAddressSync(seeds, program.programId)[0];
@@ -121,7 +124,7 @@ test("durable executor verifies SQLite consent, binds, creates ATAs, pays and re
     );
   await mintTo(provider.connection, payer, mint, source, payer, 100_000_000n);
   const domain = hash("executor:solana-localnet"),
-    projectId = hash("executor-project"),
+    projectId = hash(`executor-project${RUN}`),
     origin = hash("executor-source");
   const project = pda(
       Buffer.from("project"),
@@ -518,7 +521,7 @@ test("durable executor verifies SQLite consent, binds, creates ATAs, pays and re
   );
   // Another project's commit that merely mentions this project account must
   // not stop this project's scanner.
-  const foreignId = hash("foreign-project"),
+  const foreignId = hash(`foreign-project${RUN}`),
     foreignOrigin = hash("foreign-source");
   const foreign = pda(
       Buffer.from("project"),

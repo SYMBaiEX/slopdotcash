@@ -34,6 +34,9 @@ const program = new Program(
   provider,
 );
 const hash = (s) => [...createHash("sha256").update(s).digest()];
+// A public test cluster keeps accounts between runs; a run salt gives each
+// run new project accounts. Local runs leave it empty.
+const RUN = process.env.SLOP_E2E_RUN ?? "";
 const network = hash("solana:localnet:escrow-v2");
 const bn = (x) => new BN(String(x));
 const pda = (...seeds) =>
@@ -211,12 +214,12 @@ test("actual SPL escrow lifecycle, late wallet claim, reserve and authority atta
   project = pda(
     seed("project"),
     key(payer.publicKey),
-    Buffer.from(hash("project")),
+    Buffer.from(hash(`project${RUN}`)),
   );
   vault = pda(seed("vault"), key(project));
   await program.methods
     .initialize(
-      hash("project"),
+      hash(`project${RUN}`),
       network,
       authority.publicKey,
       feeOwner.publicKey,
