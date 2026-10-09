@@ -1752,8 +1752,7 @@ main h2,
   padding-right: 16px;
 }
 .project-carousel:hover .project-carousel-track,
-.project-carousel:focus-within .project-carousel-track,
-.project-carousel.is-paused .project-carousel-track {
+.project-carousel:focus-within .project-carousel-track {
   animation-play-state: paused;
 }
 @keyframes project-rotation {
@@ -1817,19 +1816,6 @@ main h2,
 .carousel-project-card .project-review-budget {
   font-size: 12px;
 }
-.carousel-pause {
-  display: block;
-  margin: 12px 0 0 auto;
-  padding: 8px 12px;
-  color: var(--muted);
-  border: 0;
-  background: transparent;
-  font-size: 12px;
-  cursor: pointer;
-}
-.carousel-pause:hover {
-  color: var(--ink);
-}
 @media (prefers-reduced-motion: reduce) {
   .project-carousel-track {
     animation: none;
@@ -1838,9 +1824,6 @@ main h2,
     overflow-x: auto;
   }
   .project-carousel-group[aria-hidden] {
-    display: none;
-  }
-  .carousel-pause {
     display: none;
   }
 }
@@ -1991,5 +1974,57 @@ main h2,
     margin-top: 32px;
     padding-top: 20px;
     gap: 20px;
+  }
+}
+
+.carousel-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.projects-directory {
+  padding-block: 40px 56px;
+}
+.directory-intro {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+.directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 24px 16px;
+}
+.directory-project {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.directory-project .carousel-project-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.directory-project .project-card-heading h3 {
+  font-size: 20px;
+}
+.directory-state {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (max-width: 680px) {
+  .directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .directory-project .project-card-heading h3 {
+    font-size: 16px;
+  }
+  .projects-directory .home-section-heading {
+    align-items: flex-start;
   }
 }

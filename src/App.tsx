@@ -143,6 +143,7 @@ interface Route {
     | "new-project"
     | "profile"
     | "project"
+    | "projects"
     | "receipts"
     | "models"
     | "sponsors"
@@ -165,6 +166,8 @@ function internalRoute(pathname: string): Route {
     return { kind: "unknown" };
   }
   if (segments.length === 0) return { kind: "home" };
+  if (segments.length === 1 && segments[0] === "projects")
+    return { kind: "projects" };
   if (segments.length === 1 && segments[0] === "earnings")
     return { kind: "earnings" };
   if (segments.length === 1 && segments[0] === "login")
@@ -280,7 +283,7 @@ function Footer() {
         </div>
         <nav className="footer-links" aria-label="Product">
           <span>Product</span>
-          <Link href="/#projects">Projects</Link>
+          <Link href="/projects">Projects</Link>
           <Link href="/#leaderboard">Leaderboard</Link>
           <Link href="/how-it-works">How it works</Link>
           <Link href="/how-it-works#faq">FAQ</Link>
@@ -479,7 +482,6 @@ function ProjectCarousel({
   projects: readonly ProjectDefinition[];
   funding: FundingDataState;
 }) {
-  const [paused, setPaused] = useState(false);
   const loopProjects = Array.from(
     { length: projects.length ? Math.ceil(8 / projects.length) : 0 },
     () => projects,
@@ -488,7 +490,7 @@ function ProjectCarousel({
     <section
       aria-label="Project carousel"
       aria-roledescription="carousel"
-      className={paused ? "project-carousel is-paused" : "project-carousel"}
+      className="project-carousel"
     >
       <div className="project-carousel-window">
         <div
@@ -520,15 +522,44 @@ function ProjectCarousel({
           </div>
         </div>
       </div>
-      <button
-        className="carousel-pause"
-        type="button"
-        aria-pressed={paused}
-        onClick={() => setPaused((value) => !value)}
-      >
-        {paused ? "Resume rotation" : "Pause rotation"}
-      </button>
+      <div className="carousel-actions">
+        <Link className="button secondary-button" href="/projects">
+          All projects <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
     </section>
+  );
+}
+
+function ProjectsPage() {
+  const [funding] = useFundingIndex();
+  return (
+    <main className="shell projects-directory">
+      <div className="home-section-heading">
+        <div>
+          <h1 className="home-section-title">All projects</h1>
+          <p className="directory-intro">
+            Find your next open-source contribution.
+          </p>
+        </div>
+        <Link className="button primary-button" href="/projects/new">
+          <Plus aria-hidden="true" /> Add a project
+        </Link>
+      </div>
+      <div className="directory-grid">
+        {PROJECTS.map((project) => (
+          <div className="directory-project" key={project.id}>
+            <ProjectCard project={project} funding={funding} imageTop />
+            <p className="directory-state">
+              {project.status === "paused" ? "Paused · listed only" : "Active"}
+              {project.reward.paymentMode === "disabled"
+                ? " · Payments disabled"
+                : ""}
+            </p>
+          </div>
+        ))}
+      </div>
+    </main>
   );
 }
 
@@ -3270,6 +3301,7 @@ function AppContent({ route }: { route: Route }) {
   const [archive, retryArchive] = useCycleIndex(route.kind === "cycle-archive");
   let content: ReactNode;
   if (route.kind === "home") content = <HomePage />;
+  else if (route.kind === "projects") content = <ProjectsPage />;
   else if (route.kind === "points") content = <PointsPage />;
   else if (route.kind === "account") content = <AccountPage />;
   else if (route.kind === "login") content = <LoginPage />;
