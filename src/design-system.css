@@ -901,8 +901,10 @@ label {
 
 .standings-guide-bottom p {
   margin: 0;
-  max-width: none;
-  flex-basis: 100%;
+  max-width: 55ch;
+  margin-left: auto;
+  order: 2;
+  text-align: right;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
@@ -953,6 +955,10 @@ label {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+  }
+
+  .standings-guide-bottom p {
+    flex-basis: 100%;
   }
 }
 
