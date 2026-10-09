@@ -834,19 +834,10 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     <div className="install-panel" id="start">
       <div className="install-heading">
         <div>
-          <p className="project-eyebrow">Start contributing</p>
-          <h2>Your agent. This project.</h2>
-          <p>
-            Copy the prompt into your coding agent. It will read the rules and
-            help you choose available work on GitHub.
-          </p>
+          <h2>Copy this into your agent.</h2>
         </div>
       </div>
       <AgentPromptBox prompt={projectAgentPrompt(project)} />
-      <p className="project-outcome-note">
-        Submit a tested PR. Maintainers decide what merges; accepted work earns
-        score. Payment requires separate funding and approval.
-      </p>
       <details className="install-advanced">
         <summary>Installation, disclosures &amp; optional receipts</summary>
         <p className="install-note">
@@ -1532,11 +1523,15 @@ function ProjectPage({
     state.status === "ready"
       ? state.views.find((candidate) => candidate.project.id === project.id)
       : undefined;
+  const headlinePrefix = "Make money ";
   const promotionEligible = projectPromotionEligible(
     project,
     state.status === "ready" ? state.cycleIndex.cycles : null,
     view?.cycle.id ?? null,
   );
+  const headlineAction = project.headline.startsWith(headlinePrefix)
+    ? project.headline.slice(headlinePrefix.length)
+    : null;
   return (
     <main>
       <section className="project-hero">
@@ -1547,46 +1542,59 @@ function ProjectPage({
             <span>/</span>
             {project.name}
           </p>
-          <header className="project-masthead">
-            <h1>{project.name}</h1>
-            <p className="hero-copy">{project.description}</p>
-            <div className="project-repository-action">
-              <ExternalLinkAnchor
-                className="button secondary-button"
-                href={project.links.repository}
-              >
-                View repository <ExternalLink aria-hidden="true" size={14} />
-              </ExternalLinkAnchor>
-            </div>
-            <p className="project-terms-line">
-              By{" "}
-              <ExternalLinkAnchor href={project.steward.github.profileUrl}>
-                {project.steward.displayName}
-              </ExternalLinkAnchor>{" "}
-              · {project.terms.repositoryLicense.spdx ?? "license unknown"} ·{" "}
-              {project.terms.inbound.mode === "unknown"
-                ? "inbound terms unknown"
-                : `${project.terms.inbound.mode} inbound terms`}{" "}
-              · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
-              {project.steward.github.type === "User" ? (
-                <PublicXLink actorId={project.steward.github.nodeId} />
-              ) : null}
-            </p>
-            {project.terms.externalPrize ? (
-              <p className="project-policy-warning">
-                Organizer rules decide eligibility, amount, and payment.
-              </p>
-            ) : null}
-          </header>
-          <div className="project-hero-grid project-start-grid">
+          <div className="project-hero-grid">
             <div>
-              <ProjectParticipation
-                project={project}
-                displayCycleId={view?.cycle.id ?? null}
-                cycles={
-                  state.status === "ready" ? state.cycleIndex.cycles : null
-                }
-              />
+              <h1>
+                {project.status === "paused" ? (
+                  project.name
+                ) : headlineAction ? (
+                  <>
+                    Make money{" "}
+                    <span className="project-headline-action">
+                      {headlineAction}
+                    </span>
+                  </>
+                ) : (
+                  project.headline
+                )}
+              </h1>
+              <p className="hero-copy">{project.description}</p>
+              {project.status === "paused" ? (
+                <ProjectParticipation
+                  project={project}
+                  displayCycleId={view?.cycle.id ?? null}
+                  cycles={
+                    state.status === "ready" ? state.cycleIndex.cycles : null
+                  }
+                />
+              ) : null}
+              <p className="project-terms-line">
+                By{" "}
+                <ExternalLinkAnchor href={project.steward.github.profileUrl}>
+                  {project.steward.displayName}
+                </ExternalLinkAnchor>{" "}
+                · {project.terms.repositoryLicense.spdx ?? "license unknown"} ·{" "}
+                {project.terms.inbound.mode === "unknown"
+                  ? "inbound terms unknown"
+                  : `${project.terms.inbound.mode} inbound terms`}{" "}
+                · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
+                {project.steward.github.type === "User" ? (
+                  <PublicXLink actorId={project.steward.github.nodeId} />
+                ) : null}
+                {view ? (
+                  <>
+                    {" · "}
+                    <Link href={`/projects/${project.slug}#contributors`}>
+                      Contributors
+                    </Link>
+                  </>
+                ) : null}
+              </p>
+              {project.terms.externalPrize ? (
+                <p className="project-policy-warning">
+                  Organizer rules decide eligibility, amount, and payment.
+                </p>
+              ) : null}
             </div>
             {project.status === "paused" ? null : state.status !== "ready" ? (
               <aside className="reward-card">
@@ -1600,8 +1608,7 @@ function ProjectPage({
                 </p>
               </aside>
             ) : promotionEligible ? (
-              <aside className="reward-card" aria-label="Reward status">
-                <span>Reward status</span>
+              <aside className="reward-card">
                 <strong
                   className={
                     project.reward.kind === "monthly-pool" &&
@@ -1633,6 +1640,12 @@ function ProjectPage({
                   {project.reward.kind === "external-prize-share" ? (
                     <small>No platform pool · no dollar projection</small>
                   ) : null}
+                  <div className="reward-actions">
+                    <ExternalLinkAnchor href={project.links.repository}>
+                      View in GitHub
+                      <ExternalLink aria-hidden="true" size={14} />
+                    </ExternalLinkAnchor>
+                  </div>
                 </div>
               </aside>
             ) : (
@@ -1645,6 +1658,13 @@ function ProjectPage({
               </aside>
             )}
           </div>
+          {project.status !== "paused" && state.status === "ready" ? (
+            <ProjectParticipation
+              project={project}
+              displayCycleId={view?.cycle.id ?? null}
+              cycles={state.cycleIndex.cycles}
+            />
+          ) : null}
         </div>
       </section>
       <div className="shell">

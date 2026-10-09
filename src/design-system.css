@@ -1162,73 +1162,12 @@ main h2,
 }
 
 .project-hero .install-panel {
-  margin-top: 0;
+  margin-top: 32px;
   padding: 24px;
-  border: 1px solid var(--line-strong);
-  background: var(--surface);
 }
 
 .project-hero .install-panel h2 {
   font-size: 26px;
-}
-
-.project-hero .install-heading .project-eyebrow {
-  margin: 0 0 12px;
-  color: var(--orange);
-  font-size: 12px;
-}
-
-.project-masthead {
-  position: relative;
-  padding-right: 220px;
-}
-
-.project-masthead .hero-copy {
-  max-width: 70ch;
-  margin-top: 12px;
-}
-
-.project-repository-action {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.project-outcome-note {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-  margin-top: 20px;
-  max-width: 65ch;
-}
-
-.project-eyebrow {
-  color: var(--orange);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0 0 12px;
-}
-
-.project-start-grid {
-  margin-top: 36px;
-}
-
-.project-start-grid .reward-card > strong {
-  font-size: 26px;
-  line-height: 1.15;
-  margin-block: 0 12px;
-}
-
-.project-start-grid .reward-card {
-  padding: 24px;
-}
-
-.project-start-grid .reward-card > span {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: normal;
 }
 
 .cycle-allocation-details > summary {
@@ -1271,17 +1210,6 @@ main h2,
 
 #project-records {
   scroll-margin-top: 88px;
-}
-
-@media (max-width: 680px) {
-  .project-masthead {
-    padding-right: 0;
-  }
-
-  .project-repository-action {
-    position: static;
-    margin-top: 20px;
-  }
 }
 
 .project-tools {
