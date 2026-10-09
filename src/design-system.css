@@ -49,22 +49,25 @@ pre {
 }
 
 .hero h1 {
-  line-height: 0.86;
+  line-height: 1.02;
 }
 
 .hero-action {
   color: var(--orange);
   letter-spacing: -0.04em;
+  font-size: inherit;
+  line-height: inherit;
+  min-height: 0;
 }
 
 /* Buttons: one height scale, one radius, six kinds. */
 .button {
-  min-height: var(--brand-size-button-medium);
+  min-height: var(--brand-size-button-small);
   gap: 10px;
-  padding: 0 22px;
+  padding: 0 16px;
   border: 1px solid transparent;
   border-radius: var(--brand-radius-small);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.15;
   text-align: center;
@@ -288,9 +291,9 @@ label {
 }
 
 .header-inner {
-  min-height: 88px;
+  min-height: 64px;
   flex-wrap: wrap;
-  padding-block: 12px;
+  padding-block: 8px;
 }
 
 .wordmark {
@@ -419,7 +422,7 @@ label {
 
 /* Footer: orange band, inverse mark. */
 .site-footer {
-  padding-block: 72px 48px;
+  padding-block: 32px 24px;
   border-top: 0;
   background: var(--orange);
   color: var(--on-accent);
@@ -427,7 +430,7 @@ label {
 
 .footer-grid {
   grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
-  gap: 48px 32px;
+  gap: 24px;
 }
 
 .footer-brand-row {
@@ -438,7 +441,7 @@ label {
 }
 
 .footer-wordmark {
-  font-size: clamp(40px, 5vw, 64px);
+  font-size: clamp(28px, 3vw, 40px);
   letter-spacing: -0.04em;
   line-height: 0.9;
 }
@@ -446,8 +449,8 @@ label {
 .footer-links {
   flex-direction: column;
   flex-wrap: nowrap;
-  gap: 12px;
-  font-size: 16px;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -502,14 +505,14 @@ label {
 }
 
 .agent-prompt-box {
-  gap: 16px;
-  padding: 12px 12px 12px 24px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .agent-prompt-copy {
   color: var(--ink);
   font-family: var(--brand-font-data);
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -537,17 +540,19 @@ label {
 
 .agent-prompt {
   width: 100%;
-  max-width: 880px;
+  max-width: 760px;
+  margin-inline: auto;
 }
 
 .agent-open-in {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 20px;
-  margin: 18px 0 0;
+  gap: 8px 16px;
+  justify-content: center;
+  margin: 12px 0 0;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .agent-open-in a {
@@ -581,22 +586,23 @@ label {
 
 /* Home. */
 .hero {
-  padding-block: clamp(72px, 10vw, 140px) clamp(72px, 9vw, 128px);
+  padding-block: 48px 32px;
+  text-align: center;
 }
 
 .hero h1 {
-  font-size: clamp(56px, 9vw, 136px);
+  font-size: clamp(36px, 4.5vw, 64px);
 }
 
 .hero-copy {
-  margin: 40px 0 20px;
+  margin: 20px 0 12px;
   color: var(--muted);
-  font-size: clamp(18px, 1.8vw, 22px);
+  font-size: 16px;
   font-weight: 500;
 }
 
 .section {
-  padding-block: 96px;
+  padding-block: 32px;
 }
 
 .home-section-heading {
@@ -604,13 +610,13 @@ label {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 48px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .home-section-title {
-  font-size: clamp(44px, 6vw, 88px);
-  line-height: 0.88;
+  font-size: clamp(26px, 2.5vw, 36px);
+  line-height: 1.1;
 }
 
 .project-tier > h3 {
@@ -623,13 +629,13 @@ label {
 }
 
 .project-grid {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
 }
 
 .project-card {
-  gap: 28px;
-  padding: 32px;
+  gap: 16px;
+  padding: 16px;
   border: 1px solid transparent;
   border-radius: var(--brand-radius-large);
   background: var(--surface);
@@ -648,7 +654,7 @@ label {
 
 .project-card-heading h3 {
   flex: 1;
-  font-size: clamp(30px, 3vw, 40px);
+  font-size: clamp(20px, 2vw, 26px);
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
@@ -662,24 +668,26 @@ label {
 }
 
 .project-avatar {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   border-radius: 10px;
   background: var(--raised);
   object-fit: cover;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 800;
 }
 
 .project-card-content {
   grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   gap: 16px;
 }
 
 .project-summary {
+  font-size: 16px;
   color: var(--muted);
 }
 
@@ -772,7 +780,7 @@ label {
 }
 
 .how-section {
-  padding-block: 112px;
+  padding-block: 32px;
   border-block: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
@@ -781,18 +789,18 @@ label {
 .how-tracks {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: 16px;
 }
 
 .how-tracks article {
-  padding: 40px;
+  padding: 20px;
   border-radius: var(--brand-radius-large);
   background: var(--paper);
 }
 
 .how-tracks h3 {
-  margin: 0 0 32px;
-  font-size: 32px;
+  margin: 0 0 20px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -800,7 +808,7 @@ label {
 
 .how-steps {
   display: grid;
-  gap: 28px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -808,18 +816,18 @@ label {
 
 .how-steps li {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   align-items: start;
-  gap: 18px;
+  gap: 12px;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
 .how-steps li > svg {
-  width: 48px;
-  height: 48px;
-  padding: 12px;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
   border-radius: 50%;
   background: rgba(255, 90, 25, 0.12);
   color: var(--orange);
@@ -828,20 +836,20 @@ label {
 .how-steps strong {
   display: block;
   color: var(--ink);
-  font-size: 19px;
+  font-size: 16px;
 }
 
 /* Leaderboard. */
 .home-leaderboard-section {
-  padding-block: 112px 144px;
+  padding-block: 32px 48px;
 }
 
 .home-leaderboard-section > .points-panel > h2 {
-  margin: 0 0 32px;
-  font-size: clamp(44px, 6vw, 88px);
+  margin: 0 0 20px;
+  font-size: clamp(26px, 2.5vw, 36px);
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 0.88;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 
@@ -882,9 +890,9 @@ label {
 }
 
 .points-table td {
-  padding: 16px 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
-  font-size: 17px;
+  font-size: 15px;
 }
 
 .points-table tbody tr:hover {
@@ -893,7 +901,7 @@ label {
 
 .points-rank {
   width: 72px;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
 }
 
@@ -1046,13 +1054,13 @@ label {
 
 .project-bounty strong {
   font-family: var(--brand-font-display);
-  font-size: clamp(40px, 4vw, 56px);
+  font-size: clamp(26px, 2.5vw, 34px);
   letter-spacing: -0.03em;
   line-height: 0.95;
 }
 
 .project-bounty.project-bounty-unfunded strong {
-  font-size: clamp(26px, 2.4vw, 32px);
+  font-size: clamp(22px, 2vw, 28px);
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
@@ -1076,4 +1084,96 @@ main h2 {
   border-color: var(--orange);
   background: var(--orange);
   color: var(--on-accent);
+}
+
+/* Compact content within the original centered page layout (UX-01/02, MVP-10). */
+
+main
+  :is(
+    .project-hero,
+    .proposal-intro,
+    .not-found,
+    .profile-hero,
+    .cycle-hero,
+    .evidence-page-hero,
+    .manage-intro
+  )
+  h1,
+.points-page h1,
+.funding-page > h1,
+.route-main > h1,
+.route-main > header h1 {
+  max-width: none;
+  margin-bottom: 16px;
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.1;
+}
+
+main h2,
+.route-main h2,
+.evidence-page h2,
+.section-heading h2,
+.profile-section-heading h2,
+.simple-heading h2,
+.owner-section h2,
+.proposal-form h2 {
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.15;
+}
+
+.evidence-page-hero {
+  margin-bottom: 24px;
+}
+
+.project-hero,
+.profile-section,
+.owner-section {
+  padding-block: 24px;
+}
+
+.proposal-intro,
+.manage-intro {
+  padding-bottom: 24px;
+}
+
+.breadcrumb {
+  margin-bottom: 20px;
+}
+
+.project-hero-grid,
+.owner-section {
+  gap: 24px;
+}
+
+.reward-card {
+  padding: 16px;
+}
+
+.reward-card > strong,
+.reward-card > .reward-amount-monthly {
+  margin-block: 12px 8px;
+  font-size: clamp(26px, 3vw, 40px);
+}
+
+@media (max-width: 680px) {
+  .button {
+    min-height: var(--brand-size-button-medium);
+  }
+
+  .header-inner {
+    min-height: 64px;
+  }
+
+  .hero {
+    padding-block: 32px 24px;
+  }
+
+  .hero-action {
+    margin-top: 0;
+  }
+
+  .how-tracks article,
+  .project-card {
+    padding: 16px;
+  }
 }
