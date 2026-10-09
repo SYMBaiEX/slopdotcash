@@ -13,6 +13,11 @@ on:
     # Offset from the hour so this refresh does not join the top-of-hour surge.
     - cron: "17 */6 * * *"
   workflow_dispatch:
+    inputs:
+      bootstrap_staging_profiles:
+        description: "First staging publication only: use the reviewed profile seed after verifying no staging Pages deployment exists"
+        type: boolean
+        default: false
 
 concurrency:
   # PR supersessions cancel, while trusted runs keep independent quality lanes
@@ -153,6 +158,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
+          BOOTSTRAP_STAGING_PROFILES: ${{ inputs.bootstrap_staging_profiles || false }}
         run: |
           set -euo pipefail
           profile_origin="https://slop.cash"
@@ -160,9 +166,17 @@ jobs:
             profile_origin="https://staging.slop.cash"
           fi
           previous_profiles="$RUNNER_TEMP/slop-previous-profiles.json"
-          curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
-            --connect-timeout 10 --max-time 60 --max-filesize 8388608 \
-            "$profile_origin/data/profiles.json" --output "$previous_profiles"
+          if [ "$BOOTSTRAP_STAGING_PROFILES" = "true" ]; then
+            test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+            test "$GITHUB_REF" = "refs/heads/development"
+            test "$VITE_SLOP_ENVIRONMENT" = "staging"
+            cp data/profiles/seed.json "$previous_profiles"
+            echo "First staging publication: start from the reviewed profile census."
+          else
+            curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+              --connect-timeout 10 --max-time 60 --max-filesize 8388608 \
+              "$profile_origin/data/profiles.json" --output "$previous_profiles"
+          fi
           bun run leaderboard:generate
           # Preserve previously observed issue history, including records
           # no longer accessible. Both source inventories must reconcile.
