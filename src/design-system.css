@@ -864,6 +864,10 @@ label {
 
 .standings-guide {
   margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .standings-metrics {
@@ -890,14 +894,15 @@ label {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px 24px;
-  margin-top: 20px;
+  justify-content: flex-start;
+  gap: 12px 24px;
+  margin-top: 16px;
 }
 
 .standings-guide-bottom p {
   margin: 0;
-  max-width: 55ch;
+  max-width: none;
+  flex-basis: 100%;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
@@ -917,12 +922,22 @@ label {
   font-size: 13px;
 }
 
+.standings-guide-links > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .standings-guide-links > a:not(.button) {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 @media (max-width: 680px) {
+  .standings-guide {
+    padding: 16px;
+  }
+
   .standings-metrics {
     grid-template-columns: 1fr;
     gap: 14px;
