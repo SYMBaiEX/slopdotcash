@@ -1519,14 +1519,6 @@ function ProjectFundingPage({
   );
 }
 
-function projectSectionFromHash() {
-  return window.location.hash === "#contributors"
-    ? "contributors"
-    : ["#project-records", "#project-tools"].includes(window.location.hash)
-      ? "records"
-      : "contribute";
-}
-
 function ProjectPage({
   project,
   state,
@@ -1536,12 +1528,6 @@ function ProjectPage({
   state: DataState;
   retry: () => void;
 }) {
-  const [section, setSection] = useState(projectSectionFromHash);
-  useEffect(() => {
-    const syncSection = () => setSection(projectSectionFromHash());
-    window.addEventListener("hashchange", syncSection);
-    return () => window.removeEventListener("hashchange", syncSection);
-  }, []);
   const view =
     state.status === "ready"
       ? state.views.find((candidate) => candidate.project.id === project.id)
@@ -1592,45 +1578,7 @@ function ProjectPage({
               </p>
             ) : null}
           </header>
-          <nav className="project-section-nav" aria-label="Project sections">
-            <a
-              href="#start"
-              aria-current={section === "contribute" ? "page" : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                window.history.pushState(null, "", "#start");
-                setSection("contribute");
-              }}
-            >
-              Contribute
-            </a>
-            <a
-              href="#contributors"
-              aria-current={section === "contributors" ? "page" : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                window.history.pushState(null, "", "#contributors");
-                setSection("contributors");
-              }}
-            >
-              Contributors
-            </a>
-            <a
-              href="#project-records"
-              aria-current={section === "records" ? "page" : undefined}
-              onClick={(event) => {
-                event.preventDefault();
-                window.history.pushState(null, "", "#project-records");
-                setSection("records");
-              }}
-            >
-              Records &amp; funding
-            </a>
-          </nav>
-          <div
-            className="project-hero-grid project-start-grid"
-            hidden={section !== "contribute"}
-          >
+          <div className="project-hero-grid project-start-grid">
             <div>
               <ProjectParticipation
                 project={project}
@@ -1711,7 +1659,7 @@ function ProjectPage({
             Activity for this project has not been collected yet.
           </p>
         ) : null}
-        <div hidden={section !== "contributors"}>
+        <div>
           {view && state.status === "ready" ? (
             <ProjectLeaderboard
               state={state}
@@ -1730,15 +1678,11 @@ function ProjectPage({
             </p>
           ) : null}
         </div>
-        <div id="project-records" hidden={section !== "records"}>
+        <div id="project-records">
           <ProjectPaymentHistory project={project} state={state} />
         </div>
-        <details
-          className="project-tools"
-          id="project-tools"
-          hidden={section !== "records"}
-        >
-          <summary>Funding &amp; maintainer tools</summary>
+        <section className="project-tools" id="project-tools">
+          <h2>Funding &amp; maintainer tools</h2>
           <ProjectFunding project={project} />
           <div className="project-links">
             {project.reward.kind === "external-prize-share" ? null : (
@@ -1750,7 +1694,7 @@ function ProjectPage({
               Draft a project update
             </Link>
           </div>
-        </details>
+        </section>
       </div>
     </main>
   );
