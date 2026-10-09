@@ -886,6 +886,8 @@ label {
 }
 
 .standings-filter-bar {
+  min-inline-size: 0;
+  margin: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;

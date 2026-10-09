@@ -157,9 +157,8 @@ export function ProfileActivity({
       <div className="profile-totals">
         <div className="profile-score-summary">{summary}</div>
         <div className="profile-work-summary">
-          {state.status === "ready" ? (
-            <>
-              {(
+          {state.status === "ready"
+            ? (
                 [
                   ["Merged", "merged"],
                   ["Open", "open"],
@@ -172,9 +171,8 @@ export function ProfileActivity({
                   </strong>
                   <span>PRs {label.toLowerCase()}</span>
                 </div>
-              ))}
-            </>
-          ) : null}
+              ))
+            : null}
         </div>
         <div className="profile-payment-summary">
           <div>

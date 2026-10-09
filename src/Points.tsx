@@ -1107,9 +1107,8 @@ export function ContributorStandings({
           </p>
         ) : null}
       </details>
-      <div
+      <fieldset
         className="points-controls standings-filter-bar"
-        role="group"
         aria-label="Leaderboard filters"
       >
         <label>
@@ -1183,7 +1182,7 @@ export function ContributorStandings({
             type="search"
           />
         </label>
-      </div>
+      </fieldset>
       {(
         sort === "points"
           ? state.status === "ready"
