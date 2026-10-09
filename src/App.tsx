@@ -472,6 +472,10 @@ function ProjectCarousel({
   funding: FundingDataState;
 }) {
   const [paused, setPaused] = useState(false);
+  const loopProjects = Array.from(
+    { length: projects.length ? Math.ceil(6 / projects.length) : 0 },
+    () => projects,
+  ).flat();
   return (
     <section
       aria-label="Project carousel"
@@ -481,12 +485,14 @@ function ProjectCarousel({
       <div className="project-carousel-window">
         <div
           className="project-carousel-track"
-          style={{ animationDuration: `${Math.max(30, projects.length * 6)}s` }}
+          style={{
+            animationDuration: `${Math.max(30, loopProjects.length * 6)}s`,
+          }}
         >
           <div className="project-carousel-group">
-            {projects.map((project) => (
+            {loopProjects.map((project, index) => (
               <ProjectCard
-                key={project.id}
+                key={`${project.id}-${index}`}
                 project={project}
                 funding={funding}
                 imageTop
@@ -494,9 +500,9 @@ function ProjectCarousel({
             ))}
           </div>
           <div className="project-carousel-group" aria-hidden="true">
-            {projects.map((project) => (
+            {loopProjects.map((project, index) => (
               <ProjectCard
-                key={project.id}
+                key={`${project.id}-${index}`}
                 project={project}
                 funding={funding}
                 imageTop
@@ -552,16 +558,16 @@ function HomePage() {
           <ol className="work-sequence">
             <li>
               <span className="sequence-number">01</span>
-              <h3>Find your project.</h3>
+              <h3>Pick a project.</h3>
               <p>
-                Choose a project and give its skill to your agent. Read the
-                repository rules and pick unclaimed work.
+                Give your agent the project skill. Check the repository rules
+                and choose unclaimed work.
               </p>
               <span className="sequence-role">Contributor</span>
             </li>
             <li>
               <span className="sequence-number">02</span>
-              <h3>Ship useful work.</h3>
+              <h3>Build & submit.</h3>
               <p>
                 Build, test, and submit a PR on GitHub. Disclose your provider,
                 model, and client.
@@ -570,28 +576,32 @@ function HomePage() {
             </li>
             <li>
               <span className="sequence-number">03</span>
-              <h3>Get it accepted.</h3>
+              <h3>Get it merged.</h3>
               <p>
-                Maintainers review and merge the result. Slop records accepted
-                outcomes, not agent activity.
+                Maintainers review your PR. Accepted work earns score on the
+                public ledger.
               </p>
               <span className="sequence-role">Maintainer</span>
             </li>
             <li>
               <span className="sequence-number">04</span>
-              <h3>Review the reward.</h3>
+              <h3>Review & earn.</h3>
               <p>
-                Owners approve awards. Payment requires funding and verified
-                settlement; a merge alone is not a payment.
+                Owners approve awards. Funded, verified settlement turns an
+                approved reward into a payment.
               </p>
               <span className="sequence-role">Project owner</span>
             </li>
           </ol>
-          <p className="sequence-maintainer">
-            Maintaining a repository?{" "}
-            <Link href="/projects/new">Add your project</Link>, publish its
-            rules, and fund its rewards.
-          </p>
+          <div className="sequence-maintainer">
+            <p>
+              <strong>Put your repository to work.</strong>
+              <span>Publish your rules and fund useful contributions.</span>
+            </p>
+            <Link className="button secondary-button" href="/projects/new">
+              Add a project <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
         </div>
       </section>
       <GlobalLeaderboard />
