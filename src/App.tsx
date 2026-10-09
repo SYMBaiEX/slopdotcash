@@ -36,7 +36,6 @@ import {
 import { Link, useInitialHashScroll } from "./Link";
 import { SlopMark, Wordmark } from "./Logo";
 import {
-  allocationFundingMinor,
   type PromotionCycle,
   projectPromotionEligible,
 } from "./lib/allocation-funding";
@@ -835,25 +834,24 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     <div className="install-panel" id="start">
       <div className="install-heading">
         <div>
-          <h2>Copy this into your agent.</h2>
+          <h2>Contribute</h2>
+          <p>
+            Paste this prompt into your coding agent. It reads the project
+            rules, finds available work on GitHub, and helps you prepare a PR
+            for maintainer review.
+          </p>
         </div>
       </div>
       <AgentPromptBox prompt={projectAgentPrompt(project)} />
-      {project.reward.kind === "monthly-pool" &&
-      allocationFundingMinor(project.reward) === 0n ? (
-        <p>
-          Unfunded trial: this skill records accepted work and scores with a $0
-          funding-backed projection.
-        </p>
-      ) : null}
-      <p className="install-note">
-        Any model can join. The skill publishes the exact provider, model, and
-        client. Signed receipts and permanent private traces are optional; only
-        Slop operators can access uploaded trace contents. Payout setup uses an
-        authenticated, append-only Slop wallet registry.
-      </p>
       <details className="install-advanced">
-        <summary>Advanced options</summary>
+        <summary>Installation, disclosures &amp; optional receipts</summary>
+        <p className="install-note">
+          Any model can join. The skill publishes the exact provider, model, and
+          client. Signed receipts and permanent private traces are optional;
+          only Slop operators can access uploaded trace contents. Payout setup
+          uses an authenticated, append-only Slop wallet registry.
+        </p>
+
         <p>
           Use the direct installer if your agent cannot follow the prompt, or
           open the workflow document to inspect the instructions without running
@@ -936,14 +934,6 @@ function ProjectPaymentHistory({
     <section className="section payment-history">
       <div className="simple-heading">
         <h2>{externalPrize ? "Cycle history" : "Payment history"}</h2>
-        {externalPrize ? null : (
-          <Link href={`/projects/${project.slug}/funding#payouts`}>
-            Manage payouts
-          </Link>
-        )}
-        <Link href={`/projects/${project.slug}/manage`}>
-          Draft a project update
-        </Link>
       </div>
       {externalPrize ? null : (
         <p className="money-summary">
@@ -1538,15 +1528,11 @@ function ProjectPage({
     state.status === "ready"
       ? state.views.find((candidate) => candidate.project.id === project.id)
       : undefined;
-  const headlinePrefix = "Make money ";
   const promotionEligible = projectPromotionEligible(
     project,
     state.status === "ready" ? state.cycleIndex.cycles : null,
     view?.cycle.id ?? null,
   );
-  const headlineAction = project.headline.startsWith(headlinePrefix)
-    ? project.headline.slice(headlinePrefix.length)
-    : null;
   return (
     <main>
       <section className="project-hero">
@@ -1559,30 +1545,15 @@ function ProjectPage({
           </p>
           <div className="project-hero-grid">
             <div>
-              <h1>
-                {project.status === "paused" ? (
-                  project.name
-                ) : headlineAction ? (
-                  <>
-                    Make money{" "}
-                    <span className="project-headline-action">
-                      {headlineAction}
-                    </span>
-                  </>
-                ) : (
-                  project.headline
-                )}
-              </h1>
+              <h1>{project.name}</h1>
               <p className="hero-copy">{project.description}</p>
-              {project.status === "paused" ? (
-                <ProjectParticipation
-                  project={project}
-                  displayCycleId={view?.cycle.id ?? null}
-                  cycles={
-                    state.status === "ready" ? state.cycleIndex.cycles : null
-                  }
-                />
-              ) : null}
+              <div className="project-links">
+                <ExternalLinkAnchor href={project.links.repository}>
+                  View repository <ExternalLink aria-hidden="true" size={14} />
+                </ExternalLinkAnchor>
+                {view ? <a href="#contributors">Contributors</a> : null}
+                <a href="#project-records">Payment &amp; cycle records</a>
+              </div>
               <p className="project-terms-line">
                 By{" "}
                 <ExternalLinkAnchor href={project.steward.github.profileUrl}>
@@ -1596,20 +1567,19 @@ function ProjectPage({
                 {project.steward.github.type === "User" ? (
                   <PublicXLink actorId={project.steward.github.nodeId} />
                 ) : null}
-                {view ? (
-                  <>
-                    {" · "}
-                    <Link href={`/projects/${project.slug}#contributors`}>
-                      Contributors
-                    </Link>
-                  </>
-                ) : null}
               </p>
               {project.terms.externalPrize ? (
                 <p className="project-policy-warning">
                   Organizer rules decide eligibility, amount, and payment.
                 </p>
               ) : null}
+              <ProjectParticipation
+                project={project}
+                displayCycleId={view?.cycle.id ?? null}
+                cycles={
+                  state.status === "ready" ? state.cycleIndex.cycles : null
+                }
+              />
             </div>
             {project.status === "paused" ? null : state.status !== "ready" ? (
               <aside className="reward-card">
@@ -1623,7 +1593,8 @@ function ProjectPage({
                 </p>
               </aside>
             ) : promotionEligible ? (
-              <aside className="reward-card">
+              <aside className="reward-card" aria-label="Reward status">
+                <span>Reward status</span>
                 <strong
                   className={
                     project.reward.kind === "monthly-pool" &&
@@ -1655,12 +1626,6 @@ function ProjectPage({
                   {project.reward.kind === "external-prize-share" ? (
                     <small>No platform pool · no dollar projection</small>
                   ) : null}
-                  <div className="reward-actions">
-                    <ExternalLinkAnchor href={project.links.repository}>
-                      View in GitHub
-                      <ExternalLink aria-hidden="true" size={14} />
-                    </ExternalLinkAnchor>
-                  </div>
                 </div>
               </aside>
             ) : (
@@ -1673,14 +1638,6 @@ function ProjectPage({
               </aside>
             )}
           </div>
-          {project.status !== "paused" && state.status === "ready" ? (
-            <ProjectParticipation
-              project={project}
-              displayCycleId={view?.cycle.id ?? null}
-              cycles={state.cycleIndex.cycles}
-            />
-          ) : null}
-          <ProjectFunding project={project} />
         </div>
       </section>
       <div className="shell">
@@ -1695,7 +1652,6 @@ function ProjectPage({
             Activity for this project has not been collected yet.
           </p>
         ) : null}
-        <ProjectPaymentHistory project={project} state={state} />
         {view && state.status === "ready" ? (
           <ProjectLeaderboard
             state={state}
@@ -1704,6 +1660,23 @@ function ProjectPage({
             view={view}
           />
         ) : null}
+        <div id="project-records">
+          <ProjectPaymentHistory project={project} state={state} />
+        </div>
+        <details className="project-tools">
+          <summary>Funding &amp; maintainer tools</summary>
+          <ProjectFunding project={project} />
+          <div className="project-links">
+            {project.reward.kind === "external-prize-share" ? null : (
+              <Link href={`/projects/${project.slug}/funding#payouts`}>
+                Manage payouts
+              </Link>
+            )}
+            <Link href={`/projects/${project.slug}/manage`}>
+              Draft a project update
+            </Link>
+          </div>
+        </details>
       </div>
     </main>
   );

@@ -1145,6 +1145,43 @@ main h2,
   gap: 24px;
 }
 
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-block: 20px;
+  font-size: 14px;
+}
+
+.project-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.project-hero .install-panel {
+  margin-top: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.project-hero .install-panel h2 {
+  font-size: 24px;
+}
+
+.project-tools {
+  padding-block: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.project-tools > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .reward-card {
   padding: 16px;
 }
