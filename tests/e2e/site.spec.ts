@@ -1419,7 +1419,6 @@ for (const route of [
     page,
     request,
   }) => {
-    const snapshot = await loadSnapshot(request);
     let path = route;
     if (route === "latest cycle") {
       const [cycle] = (await loadCycles(request)).cycles;
@@ -1482,18 +1481,23 @@ for (const route of [
         contentType: "image/png",
       });
     }
-    if (
-      project?.repositories.some(
-        (repository) =>
-          !snapshot.repositories.some(
-            (collected) => collected.id === repository.id,
+    if (project) {
+      const snapshot = await loadSnapshot(request);
+      if (
+        project.repositories.some(
+          (repository) =>
+            !snapshot.repositories.some(
+              (collected) => collected.id === repository.id,
+            ),
+        )
+      ) {
+        await expect(
+          page.getByText(
+            "Activity for this project has not been collected yet.",
           ),
-      )
-    ) {
-      await expect(
-        page.getByText("Activity for this project has not been collected yet."),
-      ).toBeVisible();
-      await expect(page.getByText(/Live totals unavailable/u)).toHaveCount(0);
+        ).toBeVisible();
+        await expect(page.getByText(/Live totals unavailable/u)).toHaveCount(0);
+      }
     }
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
