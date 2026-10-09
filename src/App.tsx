@@ -1617,7 +1617,7 @@ function ProjectPage({
               ) : null}
             </div>
             {project.status === "paused" ? null : state.status !== "ready" ? (
-              <aside className="reward-card">
+              <aside className="project-reward-status">
                 <strong>
                   {state.status === "loading"
                     ? "Loading funding history…"
@@ -1628,7 +1628,7 @@ function ProjectPage({
                 </p>
               </aside>
             ) : promotionEligible ? (
-              <aside className="reward-card">
+              <aside className="project-reward-status">
                 <strong
                   className={
                     project.reward.kind === "monthly-pool" &&
@@ -1663,7 +1663,7 @@ function ProjectPage({
                 </div>
               </aside>
             ) : (
-              <aside className="reward-card">
+              <aside className="project-reward-status">
                 <strong>Funding promotion paused</strong>
                 <p>
                   Accepted work and cycle history remain available. No payment
