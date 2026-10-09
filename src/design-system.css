@@ -1844,3 +1844,90 @@ main h2,
     display: none;
   }
 }
+
+/* Typography-led hero, inspired by independent type specimens. */
+.hero-poster.hero.shell {
+  padding-block: 40px 28px;
+}
+.hero-poster.hero.shell h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0;
+  max-width: none;
+  text-align: left;
+  font-size: clamp(60px, 10.8vw, 138px);
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+}
+.hero-poster .hero-message > span:first-child {
+  align-self: flex-start;
+}
+.hero-poster .hero-action {
+  align-self: flex-end;
+  margin-top: 6px;
+  font-size: clamp(32px, 5.6vw, 72px);
+  letter-spacing: -0.055em;
+}
+.hero-start {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(0, 680px);
+  align-items: start;
+  gap: 32px;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.hero-poster.hero.shell .hero-copy {
+  margin: 0;
+  color: var(--ink);
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.hero-start .hero-copy span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.hero-start .agent-prompt {
+  width: 100%;
+  margin: 0;
+}
+.hero-start .agent-open-in {
+  justify-content: flex-start;
+}
+@media (max-width: 680px) {
+  .hero-poster.hero.shell {
+    padding-block: 28px 24px;
+  }
+  .hero-poster.hero.shell h1 {
+    font-size: clamp(42px, 12vw, 80px);
+  }
+  .hero-poster .hero-action {
+    font-size: clamp(23px, 6.3vw, 42px);
+  }
+  .hero-start {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 24px;
+    padding-top: 16px;
+  }
+}
+
+.project-carousel .carousel-project-card {
+  border-radius: 4px;
+}
+.project-card-image {
+  height: auto;
+  aspect-ratio: 1;
+  background: var(--raised);
+}
+.project-card-image .project-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+  font-size: 96px;
+}

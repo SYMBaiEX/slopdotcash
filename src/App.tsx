@@ -332,13 +332,19 @@ function monthlyPoolCapLabel(reward: ProjectDefinition["reward"]): string {
     .replace(/K$/u, "k");
 }
 
-function ProjectOwnerAvatar({ project }: { project: ProjectDefinition }) {
+function ProjectOwnerAvatar({
+  project,
+  size = 96,
+}: {
+  project: ProjectDefinition;
+  size?: number;
+}) {
   const repository = project.repositories[0];
   const owner = (repository?.aliases?.at(-1) ?? repository?.id ?? "").split(
     "/",
   )[0];
   const src = owner
-    ? `https://avatars.githubusercontent.com/${encodeURIComponent(owner)}?size=96`
+    ? `https://avatars.githubusercontent.com/${encodeURIComponent(owner)}?size=${size}`
     : "";
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
@@ -417,7 +423,7 @@ function ProjectCard({
     >
       {imageTop ? (
         <div className="project-card-image">
-          <ProjectOwnerAvatar project={project} />
+          <ProjectOwnerAvatar project={project} size={512} />
         </div>
       ) : null}
       <div className="project-card-heading">
@@ -433,11 +439,13 @@ function ProjectCard({
             <span>/mo target</span>
           ) : null}
         </p>
-        <small className="project-money-state">
-          {project.reward.kind === "monthly-pool"
-            ? `Vault: ${vaultBalance}`
-            : "External prize"}
-        </small>
+        {!imageTop ? (
+          <small className="project-money-state">
+            {project.reward.kind === "monthly-pool"
+              ? `Vault: ${vaultBalance}`
+              : "External prize"}
+          </small>
+        ) : null}
         {project.reward.reviewBudget ? (
           <small className="project-review-budget">
             + {reviewBudgetLabel(project.reward.reviewBudget)}
@@ -603,13 +611,18 @@ function HomePage() {
   const promotedProjects = homeProjects();
   return (
     <main>
-      <section className="hero shell">
+      <section className="hero shell hero-poster">
         <h1 className="hero-message">
           <span>MAKE MONEY</span>{" "}
           <span className="hero-action">SHIPPING OPEN SOURCE.</span>
         </h1>
-        <p className="hero-copy">Paste this into your coding agent.</p>
-        <AgentPromptBox openIn prompt={bootstrapAgentPrompt()} />
+        <div className="hero-start">
+          <p className="hero-copy">
+            Start with your agent.
+            <span>Paste the skill. Pick useful work.</span>
+          </p>
+          <AgentPromptBox openIn prompt={bootstrapAgentPrompt()} />
+        </div>
       </section>
 
       <section className="section shell home-projects-section" id="projects">
