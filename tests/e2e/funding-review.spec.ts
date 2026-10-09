@@ -56,6 +56,9 @@ test("maintainer reviews August cap, preserves excluded rows, and follows fundin
   await panel.getByRole("button", { name: /Approve cycle/u }).click();
   await expect(panel).toContainText("14 days");
   await expect(panel.locator(".workflow-inputs")).toContainText("propose");
+  await expect(
+    panel.locator(".workflow-inputs").getByText("main", { exact: true }),
+  ).toBeVisible();
   await panel.getByRole("button", { name: /Track payments/u }).click();
   await expect(panel).toContainText("Payments have not been authorized");
   await expect(

@@ -8,7 +8,7 @@ import { fundingInstrumentId } from "./allocation-funding-basis.mjs";
  * funding/signer/reservation ledgers (including losses and retired intents), and
  * finalized mainnet RPC provenance. JSON supplied by a requester is NOT a loader.
  * The release host loads the accepted global reservation and rechecks protected
- * develop before writing exact bytes. This read-only result is not a lease.
+ * main before writing exact bytes. This read-only result is not a lease.
  */
 import {
   assertProjectCommitmentLedger,

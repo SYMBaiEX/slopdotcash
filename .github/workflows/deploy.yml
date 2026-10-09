@@ -13,6 +13,11 @@ on:
     # Offset from the hour so this refresh does not join the top-of-hour surge.
     - cron: "17 */6 * * *"
   workflow_dispatch:
+    inputs:
+      bootstrap_staging_profiles:
+        description: "First staging publication only: use the reviewed profile seed after verifying no staging Pages deployment exists"
+        type: boolean
+        default: false
 
 concurrency:
   # PR supersessions cancel, while trusted runs keep independent quality lanes
@@ -153,12 +158,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
+          BOOTSTRAP_STAGING_PROFILES: ${{ inputs.bootstrap_staging_profiles || false }}
         run: |
+          set -euo pipefail
+          profile_origin="https://slop.cash"
+          if [ "$VITE_SLOP_ENVIRONMENT" = "staging" ]; then
+            profile_origin="https://staging.slop.cash"
+          fi
+          previous_profiles="$RUNNER_TEMP/slop-previous-profiles.json"
+          if [ "$BOOTSTRAP_STAGING_PROFILES" = "true" ]; then
+            test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+            test "$GITHUB_REF" = "refs/heads/development"
+            test "$VITE_SLOP_ENVIRONMENT" = "staging"
+            cp data/profiles/seed.json "$previous_profiles"
+            echo "First staging publication: start from the reviewed profile census."
+          else
+            curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+              --connect-timeout 10 --max-time 60 --max-filesize 8388608 \
+              "$profile_origin/data/profiles.json" --output "$previous_profiles"
+          fi
           bun run leaderboard:generate
-          # The census crawls every upstream PR and fails closed if the
-          # inventory shrinks mid-crawl. One retry covers a single race.
+          # Preserve previously observed issue history, including records
+          # no longer accessible. Both source inventories must reconcile.
           for attempt in 1 2; do
-            if bun run profiles:generate; then
+            if bun run profiles:generate --previous "$previous_profiles"; then
               break
             fi
             if [ "$attempt" -eq 2 ]; then
@@ -315,11 +338,22 @@ jobs:
           ./node_modules/.bin/wrangler d1 migrations apply slop-staging --remote --config wrangler.staging.toml
           ./node_modules/.bin/wrangler deploy --config workers/identity/wrangler.staging.toml
           node scripts/configure-staging-secrets.mjs
-          ./node_modules/.bin/wrangler pages deploy --config wrangler.staging.toml \
-            --project-name=slop-staging \
-            --branch=development \
-            --commit-hash="$GITHUB_SHA" \
-            --commit-dirty=false
+          # Pages requires the standard config filename in its working directory.
+          # Keep the production config untouched and publish the verified bundle
+          # with the staging config from this exact source revision.
+          publish_dir="$(mktemp -d "$RUNNER_TEMP/slop-staging-pages.XXXXXX")"
+          git archive "$GITHUB_SHA" | tar -x -C "$publish_dir"
+          cp wrangler.staging.toml "$publish_dir/wrangler.toml"
+          cp -R dist "$publish_dir/dist"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$publish_dir/node_modules"
+          (
+            cd "$publish_dir"
+            ./node_modules/.bin/wrangler pages deploy \
+              --project-name=slop-staging \
+              --branch=development \
+              --commit-hash="$GITHUB_SHA" \
+              --commit-dirty=false
+          )
           node scripts/verify-staging-deployment.mjs "$GITHUB_SHA" "$started_at"
           node scripts/verify-staging-backend.mjs
 

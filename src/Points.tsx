@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { identityPublicOrigin } from "../workers/identity/contracts";
+import { browserDeployment } from "./lib/browser-deployment";
 import {
   fetchWithDeadline,
   readBoundedJson,
@@ -46,9 +47,7 @@ import { ProfileActivity, useProfiles } from "./Profiles";
 import { WalletRegistration } from "./WalletRegistration";
 
 const productOrigin = () =>
-  ["https://slop.cash", "https://slop.tech", "https://eliza.army"].includes(
-    window.location.origin,
-  );
+  browserDeployment.browserOrigins.has(window.location.origin);
 
 interface Membership {
   actor: { id: string; login: string };
@@ -693,7 +692,9 @@ function JoinPoints({
       <section className="points-panel">
         {showHeading ? <h2>Sign in to Slop</h2> : null}
         <p>Use GitHub to manage your profile.</p>
-        <a href="https://slop.cash/login">Continue with GitHub on slop.cash</a>
+        <a href={`${browserDeployment.site}/login`}>
+          Continue with GitHub on {new URL(browserDeployment.site).hostname}
+        </a>
       </section>
     );
   return (
@@ -1648,8 +1649,11 @@ function People() {
       ) : null}
       {members.status === "preview" ? (
         <p>
-          Public members load only on slop.cash.{" "}
-          <a href="https://slop.cash/points#people">View public members</a>
+          Public members load only on {new URL(browserDeployment.site).hostname}
+          .{" "}
+          <a href={`${browserDeployment.site}/points#people`}>
+            View public members
+          </a>
         </p>
       ) : members.status === "loading" ? (
         <p role="status">Loading members…</p>

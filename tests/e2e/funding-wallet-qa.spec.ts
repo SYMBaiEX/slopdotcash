@@ -166,6 +166,7 @@ test("funding and wallet keyboard flows remain accessible at 200 percent text si
         const button = panel.getByRole("button", { name: label });
         await keyboardTo(page, button, label === "Prepare funding");
         await page.keyboard.press("Enter");
+        await expect(button).toHaveAttribute("aria-current", "step");
         await audit(
           page,
           info,
