@@ -273,7 +273,7 @@ function ProfileTimeline({
   }>;
   direct: Array<{ date: string; amount: bigint; href: string; name: string }>;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [requestedPage, setPage] = useState(0);
   const unmatchedAwards = new Map(awards.map((award) => [award.key, award]));
   const records = [
     ...work.map((event) => {
@@ -334,8 +334,12 @@ function ProfileTimeline({
       (b.date ?? "").localeCompare(a.date ?? "") || a.key.localeCompare(b.key),
   );
   if (records.length === 0) return null;
+  const pageSize = 10;
+  const pageCount = Math.ceil(records.length / pageSize);
+  const page = Math.min(requestedPage, pageCount - 1);
+  const first = page * pageSize;
   const groups = new Map<string, typeof records>();
-  for (const record of expanded ? records : records.slice(0, 10)) {
+  for (const record of records.slice(first, first + pageSize)) {
     const day = record.date?.slice(0, 10) ?? "";
     const group = groups.get(day) ?? [];
     group.push(record);
@@ -345,17 +349,9 @@ function ProfileTimeline({
     <section className="profile-timeline" aria-label="Contribution activity">
       <div className="profile-activity-heading">
         <h2>Activity</h2>
-        {records.length > 10 ? (
-          <button
-            type="button"
-            aria-expanded={expanded}
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded
-              ? "Show recent activity"
-              : `View all ${records.length} activity records`}
-          </button>
-        ) : null}
+        <span className="profile-activity-count">
+          {records.length.toLocaleString()} records
+        </span>
       </div>
       {[...groups].map(([day, rows]) => (
         <section key={day}>
@@ -381,6 +377,37 @@ function ProfileTimeline({
           </ul>
         </section>
       ))}
+      {pageCount > 1 ? (
+        <nav
+          className="profile-activity-pagination"
+          aria-label="Activity pages"
+        >
+          <p role="status">
+            {(first + 1).toLocaleString()}–
+            {Math.min(first + pageSize, records.length).toLocaleString()} of{" "}
+            {records.length.toLocaleString()}
+          </p>
+          <div>
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+            >
+              Previous
+            </button>
+            <span>
+              Page {page + 1} of {pageCount}
+            </span>
+            <button
+              type="button"
+              disabled={page === pageCount - 1}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </nav>
+      ) : null}
     </section>
   );
 }

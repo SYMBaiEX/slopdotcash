@@ -3186,3 +3186,131 @@ main h2,
     min-height: 44px;
   }
 }
+
+.profile-points-summary {
+  margin-top: 32px;
+  padding: 24px;
+  background: var(--paper);
+  border-radius: 4px;
+}
+.profile-points-heading {
+  margin-bottom: 24px;
+}
+.profile-points-heading h2 {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+.profile-points-content {
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+}
+.profile-points-month strong {
+  font-size: 40px;
+}
+.profile-points-month > span {
+  margin-top: 8px;
+}
+.profile-points-milestones h3 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--brand-font-data);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.profile-points-milestones ul {
+  gap: 8px 28px;
+  font-size: 14px;
+}
+.profile-points-milestones li::before {
+  content: "✓";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--orange);
+}
+.profile-points-actions {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  max-width: none;
+}
+.profile-page .profile-points-actions button {
+  min-height: 40px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+}
+.profile-page .profile-points-actions button:hover {
+  background: var(--orange);
+  color: var(--on-accent);
+}
+.profile-points-notes {
+  margin-top: 20px;
+}
+.profile-points-notes p:last-child {
+  max-width: none;
+}
+.profile-activity-count {
+  color: var(--muted);
+  font-family: var(--brand-font-data);
+  font-size: 12px;
+}
+.profile-activity-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.profile-activity-pagination p {
+  margin: 0;
+}
+.profile-activity-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile-activity-pagination button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.profile-activity-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (max-width: 680px) {
+  .profile-points-summary {
+    padding: 20px 16px;
+    margin-inline: -4px;
+  }
+  .profile-points-heading h2 {
+    font-size: 24px;
+  }
+  .profile-points-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .profile-points-month strong {
+    font-size: 36px;
+  }
+  .profile-points-actions button,
+  .profile-activity-pagination button {
+    min-height: 44px;
+  }
+  .profile-activity-pagination > div {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .profile-page .profile-activity-heading {
+    flex-direction: row;
+    align-items: center;
+  }
+}

@@ -528,9 +528,10 @@ export function ProfilePoints({
           <div className="profile-points-content">
             <div className="profile-points-month">
               <strong>{m?.monthly.toLocaleString() ?? "0"}</strong>
-              <span>earned this month</span>
+              <span>Points earned this month</span>
             </div>
             <div className="profile-points-milestones">
+              <h3>Milestones</h3>
               {m?.badges.length ? (
                 <ul aria-label="Points milestones">
                   {m.badges.map((badge) => (
