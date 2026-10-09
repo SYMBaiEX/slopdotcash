@@ -978,22 +978,32 @@ export function ContributorStandings({
       aria-label={title ?? "Contributor standings"}
     >
       <h2>{title ?? "Contributor standings"}</h2>
-      {!scoreState ? (
+      {!scoreState && scores.status !== "ready" ? (
         <DataNotice state={scores} retry={retryScore ?? retryLoadedScore} />
       ) : null}
-      <Notice />
-      {scores.status === "ready" ? (
-        <p className="points-meta">
-          Score records: {scores.snapshot.window.from} to{" "}
-          {scores.snapshot.window.to}, plus closed cycles.
-          {period === "month"
-            ? ` Selected month: ${new Date().toISOString().slice(0, 7)} (UTC).`
-            : " Recorded history; coverage may have gaps."}
-          {!projection.scoreAvailable
-            ? " No score records cover this period. Select Recorded history or retry after the next update."
-            : ""}
-        </p>
-      ) : null}
+      {state.status !== "ready" ? <Notice /> : null}
+      <details className="standings-data-details">
+        <summary>
+          <span>Data freshness &amp; coverage</span>
+          <ChevronDown aria-hidden="true" size={16} />
+        </summary>
+        {!scoreState && scores.status === "ready" ? (
+          <DataNotice state={scores} retry={retryScore ?? retryLoadedScore} />
+        ) : null}
+        {state.status === "ready" ? <Notice /> : null}
+        {scores.status === "ready" ? (
+          <p className="points-meta">
+            Score records: {scores.snapshot.window.from} to{" "}
+            {scores.snapshot.window.to}, plus closed cycles.
+            {period === "month"
+              ? ` Selected month: ${new Date().toISOString().slice(0, 7)} (UTC).`
+              : " Recorded history; coverage may have gaps."}
+            {!projection.scoreAvailable
+              ? " No score records cover this period. Select Recorded history or retry after the next update."
+              : ""}
+          </p>
+        ) : null}
+      </details>
       <div
         className="points-controls standings-filter-bar"
         role="group"

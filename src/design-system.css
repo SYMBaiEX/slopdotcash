@@ -887,6 +887,45 @@ label {
   background: var(--surface);
 }
 
+.standings-data-details {
+  margin-block: 16px;
+}
+
+.standings-data-details > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--brand-radius-small);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.standings-data-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.standings-data-details > summary:hover {
+  border-color: var(--orange);
+}
+
+.standings-data-details > summary svg {
+  transform: rotate(-90deg);
+}
+
+.standings-data-details[open] > summary svg {
+  transform: rotate(0deg);
+}
+
+.standings-data-details .data-notice {
+  margin-block: 12px;
+}
+
 .standings-filter-bar:has(label:nth-child(5)) {
   grid-template-columns: 1fr 1.15fr 1.35fr 1.15fr 1.35fr;
 }
