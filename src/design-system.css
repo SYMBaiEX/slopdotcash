@@ -2878,3 +2878,16 @@ main h2,
     min-height: 44px;
   }
 }
+
+.profile-page .profile-hero {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.profile-page .profile-totals,
+.profile-page .profile-section + .profile-section,
+.profile-page .event-list,
+.profile-page .event-list > a {
+  border: 0;
+}

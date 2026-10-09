@@ -211,7 +211,7 @@ export function ProfilePage({
   return (
     <main className="shell route-main profile-page">
       <p className="breadcrumb">
-        <Link href="/points">Contributors</Link>
+        <Link href="/points">contributor</Link>/<span>{actor.login}</span>
       </p>
       <ContributorIdentity actor={actor}>
         <details className="profile-wallet-details">
@@ -236,7 +236,6 @@ export function ProfilePage({
           <Link href="/account#wallets">Register or update your wallet</Link>
         </details>
       </ContributorIdentity>
-      <DataNotice state={state} retry={retry} />
       <ProfilePoints
         key={login.toLowerCase()}
         actorId={actor.id}
