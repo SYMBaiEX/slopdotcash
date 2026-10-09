@@ -1253,17 +1253,42 @@ export function ContributorStandings({
           </div>
         </>
       ) : null}
-      <p className="points-meta">
-        Slop Score measures accepted work. Points record recognition. Money
-        received is verified finalized USDC principal. Equal values share a
-        rank. Historical review coverage follows verified records.
-      </p>
-      {compact ? (
-        <p>
-          <a href="/points">Full standings and earning rules</a> ·{" "}
-          <a href="/points#people">Find people</a>
-        </p>
-      ) : null}
+      <footer className="standings-guide">
+        <dl className="standings-metrics">
+          <div>
+            <dt>Slop Score</dt>
+            <dd>Accepted open-source work.</dd>
+          </div>
+          <div>
+            <dt>Points</dt>
+            <dd>Participation and recognition. Nonfinancial.</dd>
+          </div>
+          <div>
+            <dt>Money received</dt>
+            <dd>Verified, finalized USDC principal.</dd>
+          </div>
+        </dl>
+        <div className="standings-guide-bottom">
+          <p>
+            Equal values share a rank. Historical review coverage follows
+            verified records.
+          </p>
+          {compact ? (
+            <nav
+              aria-label="Explore standings"
+              className="standings-guide-links"
+            >
+              <a className="button secondary-button" href="/points">
+                Full standings &amp; earning rules{" "}
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a href="/points#people">
+                Find people <span aria-hidden="true">→</span>
+              </a>
+            </nav>
+          ) : null}
+        </div>
+      </footer>
     </section>
   );
 }
