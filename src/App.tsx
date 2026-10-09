@@ -1610,7 +1610,6 @@ function ProjectPage({
               </div>
 
               <div className="project-info">
-                <p className="hero-copy">{project.description}</p>
                 {project.status === "paused" ? (
                   <ProjectParticipation
                     project={project}
@@ -1655,6 +1654,7 @@ function ProjectPage({
                     </div>
                   ) : null}
                 </dl>
+                <p className="hero-copy">{project.description}</p>
                 <div className="project-summary-links">
                   <a href={`/projects/${project.id}/terms.json`}>
                     Terms <ExternalLink aria-hidden="true" size={12} />
