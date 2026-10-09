@@ -30,6 +30,17 @@ pre {
 }
 
 /* Display type: uppercase, heavy, tight. */
+main h2 {
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.15;
+}
+main h1,
+main h2 {
+  font-family: var(--brand-font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
 .hero h1,
 .project-hero h1,
 .proposal-intro h1,
@@ -887,7 +898,7 @@ label {
 
 .standings-filter-bar {
   min-inline-size: 0;
-  margin: 0;
+  margin: 16px 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
@@ -1194,15 +1205,6 @@ label {
   font-size: 14px;
 }
 
-/* Section titles share the display treatment. */
-main h1,
-main h2 {
-  font-family: var(--brand-font-display);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-}
-
 .funding-workbench .payout-steps button[aria-current="step"],
 .funding-workbench .payout-steps button[aria-current="step"]:hover {
   border-color: var(--orange);
@@ -1233,7 +1235,6 @@ main
   line-height: 1.1;
 }
 
-main h2,
 .route-main h2,
 .evidence-page h2,
 .section-heading h2,
@@ -1791,6 +1792,9 @@ main h2,
   margin-top: 20px;
   padding: 12px 16px;
 }
+.install-heading {
+  margin-bottom: 10px;
+}
 .project-hero .install-heading {
   margin-bottom: 10px;
 }
@@ -1817,9 +1821,6 @@ main h2,
 
 .install-panel {
   padding: 12px 16px;
-}
-.install-heading {
-  margin-bottom: 10px;
 }
 .install-panel h2 {
   font-size: 14px;
