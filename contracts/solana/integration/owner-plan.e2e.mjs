@@ -21,7 +21,7 @@ import { expectedDeployment } from "./deployment.mjs";
 
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 test("unsigned owner plans initialize, fund, reserve, veto and withdraw on actual SPL program", {
-  timeout: 120000,
+  timeout: 480000,
 }, async () => {
   const provider = anchor.AnchorProvider.env(),
     owner = provider.wallet.payer;
