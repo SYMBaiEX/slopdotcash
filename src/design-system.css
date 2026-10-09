@@ -1691,3 +1691,216 @@ main h2,
 .home-leaderboard-section .points-table td {
   border: 0;
 }
+
+/* Home: a project index and a shared contribution sequence. */
+.hero.shell {
+  padding-block: 48px 36px;
+}
+.hero.shell h1 {
+  font-size: clamp(40px, 5.6vw, 80px);
+  line-height: 1;
+}
+.hero.shell .hero-copy {
+  margin-block: 16px 10px;
+}
+.hero .agent-prompt {
+  max-width: 680px;
+}
+.hero .agent-prompt-box {
+  padding: 6px 8px 6px 12px;
+  gap: 12px;
+}
+.hero .agent-prompt-copy {
+  font-size: 12px;
+}
+.hero .command-box .button {
+  min-height: 32px;
+  min-width: 80px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.hero .agent-open-in {
+  margin-top: 10px;
+  font-size: 12px;
+}
+.work-sequence {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.work-sequence li {
+  display: grid;
+  grid-template-columns: 48px minmax(180px, 0.8fr) minmax(0, 1.5fr) 110px;
+  align-items: start;
+  gap: 20px;
+  padding-block: 20px;
+}
+.sequence-number {
+  color: var(--orange);
+  font-family: var(--brand-font-data);
+  font-size: 20px;
+}
+.work-sequence h3 {
+  margin: 0;
+  font-size: 24px;
+}
+.work-sequence p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.sequence-role {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+.sequence-maintainer {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 0;
+}
+.sequence-maintainer a {
+  color: var(--ink);
+  text-decoration: underline;
+}
+@media (max-width: 680px) {
+  .hero.shell {
+    padding-block: 36px 28px;
+  }
+  .hero .agent-prompt-box {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .hero .command-box .button {
+    width: auto;
+    min-height: 44px;
+    min-width: 64px;
+  }
+  .work-sequence li {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px 12px;
+    padding-block: 16px;
+  }
+  .work-sequence p {
+    grid-column: 2;
+  }
+  .sequence-role {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+/* Manifest-backed project carousel: four cards and a glimpse of the next. */
+.project-carousel-window {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 4%,
+    black 96%,
+    transparent
+  );
+}
+.project-carousel-track {
+  display: flex;
+  width: max-content;
+  animation: project-rotation linear infinite;
+}
+.project-carousel-group {
+  display: flex;
+  gap: 16px;
+  padding-right: 16px;
+}
+.project-carousel:hover .project-carousel-track,
+.project-carousel:focus-within .project-carousel-track,
+.project-carousel.is-paused .project-carousel-track {
+  animation-play-state: paused;
+}
+@keyframes project-rotation {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.project-carousel .carousel-project-card {
+  width: 260px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.project-card-image {
+  height: 164px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, var(--raised), var(--surface));
+  border-bottom: 1px solid var(--line);
+}
+.project-card-image .project-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 20px;
+  object-fit: contain;
+}
+.carousel-project-card .project-card-heading {
+  padding: 18px 18px 0;
+  gap: 12px;
+}
+.carousel-project-card .project-card-heading h3 {
+  font-size: 22px;
+}
+.carousel-project-card .project-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 12px 18px 18px;
+  gap: 10px;
+}
+.carousel-project-card .project-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.carousel-project-card .project-bounty {
+  margin: auto 0 0;
+  padding-top: 12px;
+}
+.carousel-project-card .project-bounty strong {
+  font-size: 26px;
+}
+.carousel-project-card .project-money-state,
+.carousel-project-card .project-review-budget {
+  font-size: 12px;
+}
+.carousel-pause {
+  display: block;
+  margin: 12px 0 0 auto;
+  padding: 8px 12px;
+  color: var(--muted);
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+.carousel-pause:hover {
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-carousel-track {
+    animation: none;
+  }
+  .project-carousel-window {
+    overflow-x: auto;
+  }
+  .project-carousel-group[aria-hidden] {
+    display: none;
+  }
+  .carousel-pause {
+    display: none;
+  }
+}

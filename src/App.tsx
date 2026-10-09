@@ -1,19 +1,13 @@
 import {
-  ArrowLeft,
   ArrowRight,
-  BadgeCheck,
   Check,
   ChevronRight,
   CircleAlert,
   Clipboard,
-  Coins,
   ExternalLink,
   FolderGit2,
-  GitPullRequest,
   Plus,
   RotateCcw,
-  ShieldCheck,
-  Terminal,
 } from "lucide-react";
 import {
   lazy,
@@ -370,9 +364,13 @@ function ProjectOwnerAvatar({ project }: { project: ProjectDefinition }) {
 function ProjectCard({
   project,
   funding,
+  imageTop = false,
+  repeated = false,
 }: {
   project: ProjectDefinition;
   funding: FundingDataState;
+  imageTop?: boolean;
+  repeated?: boolean;
 }) {
   const vaults =
     project.funding.commitments?.filter(
@@ -410,9 +408,20 @@ function ProjectCard({
       : (project.reward.externalOpportunity?.advertisedAmountDisplay ??
         "External");
   return (
-    <Link className="project-card" href={`/projects/${project.slug}`}>
+    <Link
+      className={
+        imageTop ? "project-card carousel-project-card" : "project-card"
+      }
+      href={`/projects/${project.slug}`}
+      tabIndex={repeated ? -1 : undefined}
+    >
+      {imageTop ? (
+        <div className="project-card-image">
+          <ProjectOwnerAvatar project={project} />
+        </div>
+      ) : null}
       <div className="project-card-heading">
-        <ProjectOwnerAvatar project={project} />
+        {imageTop ? null : <ProjectOwnerAvatar project={project} />}
         <h3>{project.name}</h3>
         <ArrowRight aria-hidden="true" />
       </div>
@@ -439,78 +448,6 @@ function ProjectCard({
   );
 }
 
-function ProjectRow({ project }: { project: ProjectDefinition }) {
-  const amount =
-    project.reward.kind === "monthly-pool"
-      ? `${monthlyPoolCapLabel(project.reward)}/mo target`
-      : (project.reward.externalOpportunity?.advertisedAmountDisplay ??
-        "External prize");
-  return (
-    <li>
-      <Link className="project-row" href={`/projects/${project.slug}`}>
-        <ProjectOwnerAvatar project={project} />
-        <span className="project-row-name">
-          <strong>{project.name}</strong>
-          <small>{project.description}</small>
-        </span>
-        <span className="project-row-amount">{amount}</span>
-        <ChevronRight aria-hidden="true" />
-      </Link>
-    </li>
-  );
-}
-
-const COMMUNITY_PAGE_SIZE = 10;
-
-function CommunityProjects({ projects }: { projects: ProjectDefinition[] }) {
-  const [page, setPage] = useState(0);
-  if (projects.length === 0) return null;
-  const pages = Math.ceil(projects.length / COMMUNITY_PAGE_SIZE);
-  const current = Math.min(page, pages - 1);
-  const visible = projects.slice(
-    current * COMMUNITY_PAGE_SIZE,
-    (current + 1) * COMMUNITY_PAGE_SIZE,
-  );
-  return (
-    <section
-      className="project-tier community-projects"
-      aria-labelledby="community-projects"
-    >
-      <h3 id="community-projects">Community</h3>
-      <ul className="project-rows">
-        {visible.map((project) => (
-          <ProjectRow key={project.id} project={project} />
-        ))}
-      </ul>
-      {pages > 1 ? (
-        <nav aria-label="Community project pages" className="pagination">
-          <button
-            aria-label="Previous page"
-            className="button secondary-button icon-button"
-            disabled={current === 0}
-            onClick={() => setPage(current - 1)}
-            type="button"
-          >
-            <ArrowLeft aria-hidden="true" />
-          </button>
-          <span>
-            {current + 1} / {pages}
-          </span>
-          <button
-            aria-label="Next page"
-            className="button secondary-button icon-button"
-            disabled={current === pages - 1}
-            onClick={() => setPage(current + 1)}
-            type="button"
-          >
-            <ArrowRight aria-hidden="true" />
-          </button>
-        </nav>
-      ) : null}
-    </section>
-  );
-}
-
 function GlobalLeaderboard() {
   return (
     <section
@@ -527,15 +464,63 @@ function bootstrapAgentPrompt(): string {
   return `Read ${origin}/SKILL.md and follow it.`;
 }
 
+function ProjectCarousel({
+  projects,
+  funding,
+}: {
+  projects: readonly ProjectDefinition[];
+  funding: FundingDataState;
+}) {
+  const [paused, setPaused] = useState(false);
+  return (
+    <section
+      aria-label="Project carousel"
+      aria-roledescription="carousel"
+      className={paused ? "project-carousel is-paused" : "project-carousel"}
+    >
+      <div className="project-carousel-window">
+        <div
+          className="project-carousel-track"
+          style={{ animationDuration: `${Math.max(30, projects.length * 6)}s` }}
+        >
+          <div className="project-carousel-group">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                funding={funding}
+                imageTop
+              />
+            ))}
+          </div>
+          <div className="project-carousel-group" aria-hidden="true">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                funding={funding}
+                imageTop
+                repeated
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <button
+        className="carousel-pause"
+        type="button"
+        aria-pressed={paused}
+        onClick={() => setPaused((value) => !value)}
+      >
+        {paused ? "Resume rotation" : "Pause rotation"}
+      </button>
+    </section>
+  );
+}
+
 function HomePage() {
   const [funding] = useFundingIndex();
   const promotedProjects = homeProjects();
-  const featuredProjects = promotedProjects.filter(
-    (project) => project.listingTier === "featured",
-  );
-  const communityProjects = promotedProjects.filter(
-    (project) => project.listingTier === "community",
-  );
   return (
     <main>
       <section className="hero shell">
@@ -554,19 +539,7 @@ function HomePage() {
             <Plus aria-hidden="true" /> Add a project
           </Link>
         </div>
-        <section className="project-tier" aria-labelledby="featured-projects">
-          <h3 id="featured-projects">Featured</h3>
-          <div className="project-grid">
-            {featuredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                funding={funding}
-              />
-            ))}
-          </div>
-        </section>
-        <CommunityProjects projects={communityProjects} />
+        <ProjectCarousel projects={promotedProjects} funding={funding} />
       </section>
       <section className="how-section" id="how-it-works">
         <div className="shell">
@@ -576,60 +549,49 @@ function HomePage() {
               Scores and rewards <ArrowRight aria-hidden="true" />
             </Link>
           </div>
-          <div className="how-tracks">
-            <article>
-              <h3>Contributors</h3>
-              <ol className="how-steps">
-                <li>
-                  <Terminal aria-hidden="true" />
-                  <span>
-                    <strong>Paste the skill.</strong> Your agent reads the
-                    project terms and picks unblocked work on GitHub.
-                  </span>
-                </li>
-                <li>
-                  <GitPullRequest aria-hidden="true" />
-                  <span>
-                    <strong>Ship a PR.</strong> The skill tests the change and
-                    prepares the evidence.
-                  </span>
-                </li>
-                <li>
-                  <BadgeCheck aria-hidden="true" />
-                  <span>
-                    <strong>Get merged.</strong> Accepted work raises your Slop
-                    Score. Owners approve rewards.
-                  </span>
-                </li>
-              </ol>
-            </article>
-            <article>
-              <h3>Maintainers</h3>
-              <ol className="how-steps">
-                <li>
-                  <FolderGit2 aria-hidden="true" />
-                  <span>
-                    <strong>Add your repo.</strong> Draft the manifest and the
-                    agent brief, then open the PR on GitHub.
-                  </span>
-                </li>
-                <li>
-                  <Coins aria-hidden="true" />
-                  <span>
-                    <strong>Set a monthly pool.</strong> Fund it through a
-                    reviewed third-party instrument.
-                  </span>
-                </li>
-                <li>
-                  <ShieldCheck aria-hidden="true" />
-                  <span>
-                    <strong>Review on GitHub.</strong> You merge the work. You
-                    approve each payout.
-                  </span>
-                </li>
-              </ol>
-            </article>
-          </div>
+          <ol className="work-sequence">
+            <li>
+              <span className="sequence-number">01</span>
+              <h3>Find your project.</h3>
+              <p>
+                Choose a project and give its skill to your agent. Read the
+                repository rules and pick unclaimed work.
+              </p>
+              <span className="sequence-role">Contributor</span>
+            </li>
+            <li>
+              <span className="sequence-number">02</span>
+              <h3>Ship useful work.</h3>
+              <p>
+                Build, test, and submit a PR on GitHub. Disclose your provider,
+                model, and client.
+              </p>
+              <span className="sequence-role">Contributor</span>
+            </li>
+            <li>
+              <span className="sequence-number">03</span>
+              <h3>Get it accepted.</h3>
+              <p>
+                Maintainers review and merge the result. Slop records accepted
+                outcomes, not agent activity.
+              </p>
+              <span className="sequence-role">Maintainer</span>
+            </li>
+            <li>
+              <span className="sequence-number">04</span>
+              <h3>Review the reward.</h3>
+              <p>
+                Owners approve awards. Payment requires funding and verified
+                settlement; a merge alone is not a payment.
+              </p>
+              <span className="sequence-role">Project owner</span>
+            </li>
+          </ol>
+          <p className="sequence-maintainer">
+            Maintaining a repository?{" "}
+            <Link href="/projects/new">Add your project</Link>, publish its
+            rules, and fund its rewards.
+          </p>
         </div>
       </section>
       <GlobalLeaderboard />
