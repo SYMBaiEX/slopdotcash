@@ -1603,35 +1603,51 @@ function ProjectPage({
                     }
                   />
                 ) : null}
-                <p className="project-terms-line">
-                  By{" "}
-                  <ExternalLinkAnchor href={project.steward.github.profileUrl}>
-                    {project.steward.displayName}
-                  </ExternalLinkAnchor>{" "}
-                  · {project.terms.repositoryLicense.spdx ?? "license unknown"}{" "}
-                  ·{" "}
-                  {project.terms.inbound.mode === "unknown"
-                    ? "inbound terms unknown"
-                    : `${project.terms.inbound.mode} inbound terms`}{" "}
-                  · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
-                  {project.steward.github.type === "User" ? (
-                    <PublicXLink actorId={project.steward.github.nodeId} />
+                <dl className="project-facts">
+                  <div>
+                    <dt>Steward</dt>
+                    <dd>
+                      <ExternalLinkAnchor
+                        href={project.steward.github.profileUrl}
+                      >
+                        {project.steward.displayName}
+                      </ExternalLinkAnchor>
+                      {project.steward.github.type === "User" ? (
+                        <PublicXLink actorId={project.steward.github.nodeId} />
+                      ) : null}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>License &amp; inbound</dt>
+                    <dd>
+                      {project.terms.repositoryLicense.spdx ??
+                        "License unknown"}
+                      <span>
+                        {project.terms.inbound.mode === "unknown"
+                          ? "Inbound terms unknown"
+                          : `${project.terms.inbound.mode} inbound terms`}
+                      </span>
+                    </dd>
+                  </div>
+                  {primaryRepository?.integrationBranch ? (
+                    <div>
+                      <dt>Contribution branch</dt>
+                      <dd>
+                        <code>{primaryRepository.integrationBranch}</code>
+                      </dd>
+                    </div>
                   ) : null}
+                </dl>
+                <div className="project-summary-links">
+                  <a href={`/projects/${project.id}/terms.json`}>
+                    Terms <ExternalLink aria-hidden="true" size={12} />
+                  </a>
                   {view ? (
-                    <>
-                      {" · "}
-                      <Link href={`/projects/${project.slug}#contributors`}>
-                        Contributors
-                      </Link>
-                    </>
+                    <Link href={`/projects/${project.slug}#contributors`}>
+                      Contributors <ArrowRight aria-hidden="true" size={12} />
+                    </Link>
                   ) : null}
-                </p>
-                {primaryRepository?.integrationBranch ? (
-                  <p className="project-repo-branch">
-                    Contribution branch:{" "}
-                    <code>{primaryRepository?.integrationBranch}</code>
-                  </p>
-                ) : null}
+                </div>
               </div>
               <h1>
                 {project.status === "paused" ? (
