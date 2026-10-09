@@ -1544,6 +1544,83 @@ function ProjectFundingPage({
   );
 }
 
+function ProjectSummary({
+  project,
+  primaryRepository,
+  showContributors,
+  children,
+}: {
+  project: ProjectDefinition;
+  primaryRepository?: ProjectDefinition["repositories"][number];
+  showContributors: boolean;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="project-summary-component">
+      <ProjectOwnerAvatar project={project} size={256} />
+      <div className="project-summary-content">
+        <div className="project-info-heading">
+          <div className="project-identity-text">
+            <h2>{project.name}</h2>
+            <ExternalLinkAnchor href={project.links.repository}>
+              <FolderGit2 aria-hidden="true" size={16} />
+              {primaryRepository?.displayName ?? "View repository"}
+              <ExternalLink aria-hidden="true" size={14} />
+            </ExternalLinkAnchor>
+          </div>
+        </div>
+
+        <div className="project-info">
+          {children}
+          <dl className="project-facts">
+            <div>
+              <dt>Steward</dt>
+              <dd>
+                <ExternalLinkAnchor href={project.steward.github.profileUrl}>
+                  {project.steward.displayName}
+                </ExternalLinkAnchor>
+                {project.steward.github.type === "User" ? (
+                  <PublicXLink actorId={project.steward.github.nodeId} />
+                ) : null}
+              </dd>
+            </div>
+            <div>
+              <dt>License &amp; inbound</dt>
+              <dd>
+                {project.terms.repositoryLicense.spdx ?? "License unknown"}
+                <span>
+                  {project.terms.inbound.mode === "unknown"
+                    ? "Inbound terms unknown"
+                    : `${project.terms.inbound.mode} inbound terms`}
+                </span>
+              </dd>
+            </div>
+            {primaryRepository?.integrationBranch ? (
+              <div>
+                <dt>Contribution branch</dt>
+                <dd>
+                  <code>{primaryRepository.integrationBranch}</code>
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+          <p className="hero-copy">{project.description}</p>
+          <div className="project-summary-links">
+            <a href={`/projects/${project.id}/terms.json`}>
+              Terms <ExternalLink aria-hidden="true" size={12} />
+            </a>
+            {showContributors ? (
+              <Link href={`/projects/${project.slug}#contributors`}>
+                Contributors <ArrowRight aria-hidden="true" size={12} />
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProjectPage({
   project,
   state,
@@ -1597,19 +1674,11 @@ function ProjectPage({
           </h1>
           <div className="project-hero-grid">
             <div>
-              <div className="project-info-heading">
-                <ProjectOwnerAvatar project={project} size={256} />
-                <div className="project-identity-text">
-                  <h2>{project.name}</h2>
-                  <ExternalLinkAnchor href={project.links.repository}>
-                    <FolderGit2 aria-hidden="true" size={16} />
-                    {primaryRepository?.displayName ?? "View repository"}
-                    <ExternalLink aria-hidden="true" size={14} />
-                  </ExternalLinkAnchor>
-                </div>
-              </div>
-
-              <div className="project-info">
+              <ProjectSummary
+                project={project}
+                primaryRepository={primaryRepository}
+                showContributors={Boolean(view)}
+              >
                 {project.status === "paused" ? (
                   <ProjectParticipation
                     project={project}
@@ -1619,53 +1688,7 @@ function ProjectPage({
                     }
                   />
                 ) : null}
-                <dl className="project-facts">
-                  <div>
-                    <dt>Steward</dt>
-                    <dd>
-                      <ExternalLinkAnchor
-                        href={project.steward.github.profileUrl}
-                      >
-                        {project.steward.displayName}
-                      </ExternalLinkAnchor>
-                      {project.steward.github.type === "User" ? (
-                        <PublicXLink actorId={project.steward.github.nodeId} />
-                      ) : null}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>License &amp; inbound</dt>
-                    <dd>
-                      {project.terms.repositoryLicense.spdx ??
-                        "License unknown"}
-                      <span>
-                        {project.terms.inbound.mode === "unknown"
-                          ? "Inbound terms unknown"
-                          : `${project.terms.inbound.mode} inbound terms`}
-                      </span>
-                    </dd>
-                  </div>
-                  {primaryRepository?.integrationBranch ? (
-                    <div>
-                      <dt>Contribution branch</dt>
-                      <dd>
-                        <code>{primaryRepository.integrationBranch}</code>
-                      </dd>
-                    </div>
-                  ) : null}
-                </dl>
-                <p className="hero-copy">{project.description}</p>
-                <div className="project-summary-links">
-                  <a href={`/projects/${project.id}/terms.json`}>
-                    Terms <ExternalLink aria-hidden="true" size={12} />
-                  </a>
-                  {view ? (
-                    <Link href={`/projects/${project.slug}#contributors`}>
-                      Contributors <ArrowRight aria-hidden="true" size={12} />
-                    </Link>
-                  ) : null}
-                </div>
-              </div>
+              </ProjectSummary>
 
               {project.terms.externalPrize ? (
                 <p className="project-policy-warning">

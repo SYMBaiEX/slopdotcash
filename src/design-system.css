@@ -2502,3 +2502,63 @@ main h2,
 .project-hero-grid .project-info {
   margin-left: 0;
 }
+
+.project-summary-component {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.project-summary-component > .project-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: 8px;
+  order: 0;
+}
+.project-summary-content {
+  min-width: 0;
+}
+.project-summary-content .project-info-heading {
+  margin-bottom: 18px;
+}
+.project-summary-content .project-info {
+  margin-left: 0;
+}
+@media (max-width: 680px) {
+  .project-summary-component {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .project-summary-component > .project-avatar {
+    width: 96px;
+    height: 96px;
+  }
+  .project-summary-content .project-info-heading {
+    margin-bottom: 18px;
+  }
+  .project-summary-content .project-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+  .project-summary-content .project-facts > div {
+    display: block;
+  }
+  .project-summary-content .project-facts dt {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+  .project-summary-content .project-facts dd {
+    font-size: 12px;
+  }
+  .project-summary-content .project-facts dd > span {
+    font-size: 11px;
+  }
+  .project-summary-content .project-info .hero-copy {
+    font-size: 14px;
+  }
+  .project-summary-content .project-summary-links {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
