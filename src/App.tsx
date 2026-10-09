@@ -949,43 +949,56 @@ function ProjectPaymentHistory({
       {cycles.length === 0 ? (
         <EmptyState text="No cycles have closed yet." />
       ) : (
-        <div className="plain-table-wrap">
-          <table className="plain-table">
-            <caption className="visually-hidden">{project.name} cycles</caption>
-            <thead>
-              <tr>
-                <th scope="col">Cycle</th>
-                {externalPrize ? null : (
-                  <>
-                    <th scope="col">Approved</th>
-                    <th scope="col">Fee</th>
-                    <th scope="col">Paid</th>
-                  </>
-                )}
-                <th scope="col">State</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cycles.map((cycle) => (
-                <tr key={cycle.cycleId}>
-                  <th scope="row">
-                    <Link href={`/cycles/${project.slug}/${cycle.cycleId}`}>
-                      {cycle.cycleId}
-                    </Link>
-                  </th>
+        <details className="previous-payouts">
+          <summary>
+            <span>
+              {externalPrize ? "Previous cycles" : "Previous payouts & cycles"}
+            </span>
+            <span className="payout-record-count">
+              {cycles.length} {cycles.length === 1 ? "record" : "records"}
+            </span>
+            <ChevronRight aria-hidden="true" size={18} />
+          </summary>
+          <div className="plain-table-wrap">
+            <table className="plain-table">
+              <caption className="visually-hidden">
+                {project.name} cycles
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Cycle</th>
                   {externalPrize ? null : (
                     <>
-                      <td>{formatMicroUsdc(cycle.reward.approvedMinor)}</td>
-                      <td>{formatMicroUsdc(cycle.reward.feeMinor)}</td>
-                      <td>{formatMicroUsdc(cycle.reward.paidMinor)}</td>
+                      <th scope="col">Approved</th>
+                      <th scope="col">Fee</th>
+                      <th scope="col">Paid</th>
                     </>
                   )}
-                  <td>{cycle.state.replaceAll("-", " ")}</td>
+                  <th scope="col">State</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {cycles.map((cycle) => (
+                  <tr key={cycle.cycleId}>
+                    <th scope="row">
+                      <Link href={`/cycles/${project.slug}/${cycle.cycleId}`}>
+                        {cycle.cycleId}
+                      </Link>
+                    </th>
+                    {externalPrize ? null : (
+                      <>
+                        <td>{formatMicroUsdc(cycle.reward.approvedMinor)}</td>
+                        <td>{formatMicroUsdc(cycle.reward.feeMinor)}</td>
+                        <td>{formatMicroUsdc(cycle.reward.paidMinor)}</td>
+                      </>
+                    )}
+                    <td>{cycle.state.replaceAll("-", " ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
     </section>
   );
@@ -1659,6 +1672,9 @@ function ProjectPage({
             Activity for this project has not been collected yet.
           </p>
         ) : null}
+        <div id="project-records">
+          <ProjectPaymentHistory project={project} state={state} />
+        </div>
         <div>
           {view && state.status === "ready" ? (
             <ProjectLeaderboard
@@ -1677,9 +1693,6 @@ function ProjectPage({
                   : "No contributor records are available for this project yet."}
             </p>
           ) : null}
-        </div>
-        <div id="project-records">
-          <ProjectPaymentHistory project={project} state={state} />
         </div>
         <section className="project-tools" id="project-tools">
           <h2>Funding &amp; maintainer tools</h2>

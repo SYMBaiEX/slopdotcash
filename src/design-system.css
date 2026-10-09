@@ -1163,13 +1163,19 @@ main h2,
 
 .project-hero .install-panel {
   margin-top: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 24px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
 }
 
 .project-hero .install-panel h2 {
-  font-size: 30px;
+  font-size: 26px;
+}
+
+.project-hero .install-heading .project-eyebrow {
+  margin: 0 0 12px;
+  color: var(--orange);
+  font-size: 12px;
 }
 
 .project-masthead {
@@ -1197,8 +1203,9 @@ main h2,
 }
 
 .project-eyebrow {
-  color: var(--muted);
+  color: var(--orange);
   font-size: 12px;
+  font-weight: 600;
   margin: 0 0 12px;
 }
 
@@ -1208,6 +1215,61 @@ main h2,
 
 .project-start-grid .reward-card > strong {
   font-size: 26px;
+  line-height: 1.15;
+  margin-block: 0 12px;
+}
+
+.project-start-grid .reward-card {
+  padding: 24px;
+}
+
+.project-start-grid .reward-card > span {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.previous-payouts > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.previous-payouts > summary::-webkit-details-marker {
+  display: none;
+}
+
+.previous-payouts > summary:hover {
+  border-color: var(--orange);
+}
+
+.payout-record-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.previous-payouts[open] > summary svg {
+  transform: rotate(90deg);
+}
+
+.previous-payouts .plain-table-wrap {
+  margin-top: 16px;
+}
+
+#project-records {
+  scroll-margin-top: 88px;
 }
 
 @media (max-width: 680px) {
