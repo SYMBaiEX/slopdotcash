@@ -877,6 +877,56 @@ label {
   border-radius: var(--brand-radius-small);
 }
 
+.standings-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.standings-filter-bar:has(label:nth-child(5)) {
+  grid-template-columns: 1fr 1.15fr 1.35fr 1.15fr 1.35fr;
+}
+
+.standings-filter-bar label {
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.points-panel .standings-filter-bar input,
+.points-panel .standings-filter-bar select {
+  height: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+@media (max-width: 1024px) {
+  .standings-filter-bar,
+  .standings-filter-bar:has(label:nth-child(5)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .standings-filter-bar .standings-search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (pointer: coarse) {
+  .points-panel .standings-filter-bar input,
+  .points-panel .standings-filter-bar select {
+    height: 44px;
+    min-height: 44px;
+  }
+}
+
 .points-table table {
   border-collapse: collapse;
 }

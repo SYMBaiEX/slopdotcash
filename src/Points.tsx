@@ -994,7 +994,11 @@ export function ContributorStandings({
             : ""}
         </p>
       ) : null}
-      <div className="points-controls">
+      <div
+        className="points-controls standings-filter-bar"
+        role="group"
+        aria-label="Leaderboard filters"
+      >
         <label>
           Sort by
           <select
@@ -1054,9 +1058,10 @@ export function ContributorStandings({
             </select>
           </label>
         ) : null}
-        <label>
+        <label className="standings-search">
           Find a contributor
           <input
+            placeholder="GitHub username"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
