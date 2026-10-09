@@ -33,7 +33,8 @@ const DEFAULT_TOTAL_TIMEOUT_MS = 5 * 60_000;
 const CANONICAL_ORIGIN = "https://slop.cash";
 const STAGING_ORIGIN = "https://staging.slop.cash";
 // Immutable Cloudflare Pages deployment URLs for the staging project.
-const STAGING_DEPLOYMENT_ORIGIN = /^https:\/\/[0-9a-f]{8}\.slop-staging\.pages\.dev$/u;
+const STAGING_DEPLOYMENT_ORIGIN =
+  /^https:\/\/[0-9a-f]{8}\.slop-staging\.pages\.dev$/u;
 
 function isVerificationOrigin(origin) {
   return (
