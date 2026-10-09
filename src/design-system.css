@@ -926,6 +926,61 @@ label {
   margin-block: 12px;
 }
 
+.standings-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 28px;
+  margin: 12px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--brand-radius-small);
+  background: var(--surface);
+}
+
+.standings-coverage-grid dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.standings-coverage-grid dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.standings-coverage-grid small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.coverage-stale {
+  color: var(--orange);
+}
+
+.coverage-to {
+  margin-inline: 8px;
+  color: var(--muted);
+}
+
+.coverage-window {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 680px) {
+  .standings-coverage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coverage-window time,
+  .coverage-to {
+    display: block;
+    margin: 0;
+  }
+}
+
 .standings-filter-bar:has(label:nth-child(5)) {
   grid-template-columns: 1fr 1.15fr 1.35fr 1.15fr 1.35fr;
 }

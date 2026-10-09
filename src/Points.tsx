@@ -35,7 +35,12 @@ import {
 import { profileCounts } from "./lib/profiles";
 import { findProject, PROJECTS } from "./lib/projects.mjs";
 import { type DataState, useSnapshot } from "./lib/use-snapshot";
-import { DataNotice, formatMicroUsdc, formatScore } from "./Presentation";
+import {
+  DataNotice,
+  formatMicroUsdc,
+  formatScore,
+  stale,
+} from "./Presentation";
 import { ProfileActivity, useProfiles } from "./Profiles";
 import { WalletRegistration } from "./WalletRegistration";
 
@@ -972,6 +977,12 @@ export function ContributorStandings({
     page,
     Math.max(0, Math.ceil(rows.length / pageSize) - 1),
   );
+  const coverageDate = (value: string) =>
+    new Intl.DateTimeFormat("en-US", {
+      dateStyle: "medium",
+      timeStyle: "medium",
+      timeZone: "UTC",
+    }).format(new Date(value));
   return (
     <section
       className="points-panel"
@@ -987,20 +998,88 @@ export function ContributorStandings({
           <span>Data freshness &amp; coverage</span>
           <ChevronDown aria-hidden="true" size={16} />
         </summary>
-        {!scoreState && scores.status === "ready" ? (
-          <DataNotice state={scores} retry={retryScore ?? retryLoadedScore} />
-        ) : null}
-        {state.status === "ready" ? <Notice /> : null}
-        {scores.status === "ready" ? (
+        <dl className="standings-coverage-grid">
+          {scores.status === "ready" ? (
+            <>
+              <div>
+                <dt>Score freshness</dt>
+                <dd
+                  className={
+                    stale(scores.snapshot) ? "coverage-stale" : undefined
+                  }
+                >
+                  {stale(scores.snapshot)
+                    ? "Data may be outdated"
+                    : "Up to date"}
+                </dd>
+              </div>
+              <div>
+                <dt>Score updated · UTC</dt>
+                <dd>
+                  <time
+                    dateTime={scores.snapshot.generatedAt}
+                    title={scores.snapshot.generatedAt}
+                  >
+                    {coverageDate(scores.snapshot.generatedAt)}
+                  </time>
+                </dd>
+              </div>
+              <div className="coverage-window">
+                <dt>Score coverage · UTC</dt>
+                <dd>
+                  <time
+                    dateTime={scores.snapshot.window.from}
+                    title={scores.snapshot.window.from}
+                  >
+                    {coverageDate(scores.snapshot.window.from)}
+                  </time>
+                  <span className="coverage-to">to</span>
+                  <time
+                    dateTime={scores.snapshot.window.to}
+                    title={scores.snapshot.window.to}
+                  >
+                    {coverageDate(scores.snapshot.window.to)}
+                  </time>
+                  <small>Includes closed cycles.</small>
+                </dd>
+              </div>
+            </>
+          ) : null}
+          {state.status === "ready" ? (
+            <div>
+              <dt>Points history updated · UTC</dt>
+              <dd>
+                <time
+                  dateTime={state.journal.generatedAt}
+                  title={state.journal.generatedAt}
+                >
+                  {coverageDate(state.journal.generatedAt)}
+                </time>
+                <small>
+                  {Date.now() - Date.parse(state.journal.generatedAt) >
+                  8 * 3600000
+                    ? "Stale: next verified update pending."
+                    : "Recorded history."}
+                </small>
+              </dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>Selected period</dt>
+            <dd>
+              {period === "month"
+                ? `${new Date().toISOString().slice(0, 7)} (UTC)`
+                : "Recorded history"}
+              {period !== "month" ? (
+                <small>Coverage may have gaps.</small>
+              ) : null}
+            </dd>
+          </div>
+        </dl>
+        {scores.status === "ready" && !projection.scoreAvailable ? (
           <p className="points-meta">
-            Score records: {scores.snapshot.window.from} to{" "}
-            {scores.snapshot.window.to}, plus closed cycles.
-            {period === "month"
-              ? ` Selected month: ${new Date().toISOString().slice(0, 7)} (UTC).`
-              : " Recorded history; coverage may have gaps."}
-            {!projection.scoreAvailable
-              ? " No score records cover this period. Select Recorded history or retry after the next update."
-              : ""}
+            No score records cover this period. Select Recorded history or retry
+            after the next update.
           </p>
         ) : null}
       </details>
