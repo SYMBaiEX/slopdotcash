@@ -586,7 +586,7 @@ label {
 
 /* Home. */
 .hero {
-  padding-block: 48px 32px;
+  padding-block: 80px 64px;
   text-align: center;
 }
 
@@ -1165,7 +1165,7 @@ main h2,
   }
 
   .hero {
-    padding-block: 32px 24px;
+    padding-block: 56px 48px;
   }
 
   .hero-action {
