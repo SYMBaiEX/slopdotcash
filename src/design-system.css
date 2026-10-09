@@ -2638,3 +2638,45 @@ main h2,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+@media (max-width: 680px) {
+  .project-hero .install-panel {
+    padding: 14px;
+  }
+  .install-panel .install-heading {
+    margin-bottom: 12px;
+  }
+  .install-panel .agent-prompt-box {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 6px 12px;
+    border-radius: 6px;
+  }
+  .install-panel .agent-prompt-copy {
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-size: 12px;
+    line-height: 1.5;
+    scrollbar-width: thin;
+  }
+  .install-panel .agent-prompt-copy code {
+    white-space: nowrap;
+  }
+  .project-hero .install-panel .agent-prompt-box .button {
+    min-width: 64px;
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .project-hero .install-panel .agent-prompt-box .button svg {
+    width: 14px;
+    height: 14px;
+  }
+  .project-hero .install-advanced {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+}
