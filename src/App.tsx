@@ -1523,6 +1523,9 @@ function ProjectPage({
     state.status === "ready"
       ? state.views.find((candidate) => candidate.project.id === project.id)
       : undefined;
+  const primaryRepository = project.repositories.find(
+    (repository) => repository.githubUrl === project.links.repository,
+  );
   const headlinePrefix = "Make money ";
   const promotionEligible = projectPromotionEligible(
     project,
@@ -1558,38 +1561,55 @@ function ProjectPage({
                   project.headline
                 )}
               </h1>
-              <p className="hero-copy">{project.description}</p>
-              {project.status === "paused" ? (
-                <ProjectParticipation
-                  project={project}
-                  displayCycleId={view?.cycle.id ?? null}
-                  cycles={
-                    state.status === "ready" ? state.cycleIndex.cycles : null
-                  }
-                />
-              ) : null}
-              <p className="project-terms-line">
-                By{" "}
-                <ExternalLinkAnchor href={project.steward.github.profileUrl}>
-                  {project.steward.displayName}
-                </ExternalLinkAnchor>{" "}
-                · {project.terms.repositoryLicense.spdx ?? "license unknown"} ·{" "}
-                {project.terms.inbound.mode === "unknown"
-                  ? "inbound terms unknown"
-                  : `${project.terms.inbound.mode} inbound terms`}{" "}
-                · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
-                {project.steward.github.type === "User" ? (
-                  <PublicXLink actorId={project.steward.github.nodeId} />
+              <div className="project-info">
+                <div className="project-info-heading">
+                  <h2>{project.name}</h2>
+                  <ExternalLinkAnchor href={project.links.repository}>
+                    <FolderGit2 aria-hidden="true" size={16} />
+                    {primaryRepository?.displayName ?? "View repository"}
+                    <ExternalLink aria-hidden="true" size={14} />
+                  </ExternalLinkAnchor>
+                </div>
+                <p className="hero-copy">{project.description}</p>
+                {project.status === "paused" ? (
+                  <ProjectParticipation
+                    project={project}
+                    displayCycleId={view?.cycle.id ?? null}
+                    cycles={
+                      state.status === "ready" ? state.cycleIndex.cycles : null
+                    }
+                  />
                 ) : null}
-                {view ? (
-                  <>
-                    {" · "}
-                    <Link href={`/projects/${project.slug}#contributors`}>
-                      Contributors
-                    </Link>
-                  </>
+                <p className="project-terms-line">
+                  By{" "}
+                  <ExternalLinkAnchor href={project.steward.github.profileUrl}>
+                    {project.steward.displayName}
+                  </ExternalLinkAnchor>{" "}
+                  · {project.terms.repositoryLicense.spdx ?? "license unknown"}{" "}
+                  ·{" "}
+                  {project.terms.inbound.mode === "unknown"
+                    ? "inbound terms unknown"
+                    : `${project.terms.inbound.mode} inbound terms`}{" "}
+                  · <a href={`/projects/${project.id}/terms.json`}>Terms</a>
+                  {project.steward.github.type === "User" ? (
+                    <PublicXLink actorId={project.steward.github.nodeId} />
+                  ) : null}
+                  {view ? (
+                    <>
+                      {" · "}
+                      <Link href={`/projects/${project.slug}#contributors`}>
+                        Contributors
+                      </Link>
+                    </>
+                  ) : null}
+                </p>
+                {primaryRepository?.integrationBranch ? (
+                  <p className="project-repo-branch">
+                    Contribution branch:{" "}
+                    <code>{primaryRepository?.integrationBranch}</code>
+                  </p>
                 ) : null}
-              </p>
+              </div>
               {project.terms.externalPrize ? (
                 <p className="project-policy-warning">
                   Organizer rules decide eligibility, amount, and payment.
@@ -1640,12 +1660,6 @@ function ProjectPage({
                   {project.reward.kind === "external-prize-share" ? (
                     <small>No platform pool · no dollar projection</small>
                   ) : null}
-                  <div className="reward-actions">
-                    <ExternalLinkAnchor href={project.links.repository}>
-                      View in GitHub
-                      <ExternalLink aria-hidden="true" size={14} />
-                    </ExternalLinkAnchor>
-                  </div>
                 </div>
               </aside>
             ) : (
