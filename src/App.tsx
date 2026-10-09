@@ -1649,20 +1649,7 @@ function ProjectPage({
                   ) : null}
                 </div>
               </div>
-              <h1>
-                {project.status === "paused" ? (
-                  project.name
-                ) : headlineAction ? (
-                  <>
-                    Make money{" "}
-                    <span className="project-headline-action">
-                      {headlineAction}
-                    </span>
-                  </>
-                ) : (
-                  project.headline
-                )}
-              </h1>
+
               {project.terms.externalPrize ? (
                 <p className="project-policy-warning">
                   Organizer rules decide eligibility, amount, and payment.
@@ -1725,6 +1712,20 @@ function ProjectPage({
               </aside>
             )}
           </div>
+          <h1 className="project-contribution-headline">
+            {project.status === "paused" ? (
+              project.name
+            ) : headlineAction ? (
+              <>
+                Make money{" "}
+                <span className="project-headline-action">
+                  {headlineAction}
+                </span>
+              </>
+            ) : (
+              project.headline
+            )}
+          </h1>
           {project.status !== "paused" && state.status === "ready" ? (
             <ProjectParticipation
               project={project}

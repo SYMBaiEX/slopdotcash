@@ -2218,3 +2218,69 @@ main h2,
     font-size: 26px;
   }
 }
+
+.project-hero-grid {
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: 48px;
+}
+.project-hero-grid > div > .project-info-heading {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 12px;
+}
+.project-hero-grid .project-info-heading h2 {
+  font-size: 32px;
+}
+.project-hero-grid .project-info .hero-copy {
+  max-width: 76ch;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.project-facts {
+  gap: 12px 28px;
+}
+.project-facts dt {
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+.project-summary-links {
+  margin-top: 12px;
+  gap: 16px;
+}
+.project-hero .project-reward-status {
+  padding: 16px 18px;
+}
+.project-hero .project-reward-status > strong {
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.project-hero .project-reward-status > p {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.project-hero .project-contribution-headline {
+  max-width: none;
+  margin: 32px 0 0;
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.1;
+}
+@media (max-width: 680px) {
+  .project-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .project-hero-grid .project-info-heading h2 {
+    font-size: 28px;
+  }
+  .project-hero .project-contribution-headline {
+    margin-top: 24px;
+  }
+  .project-hero .project-reward-status {
+    padding: 12px 14px;
+  }
+}
