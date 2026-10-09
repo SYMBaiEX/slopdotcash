@@ -1269,10 +1269,6 @@ export function ContributorStandings({
           </div>
         </dl>
         <div className="standings-guide-bottom">
-          <p>
-            Equal values share a rank. Historical review coverage follows
-            verified records.
-          </p>
           {compact ? (
             <nav
               aria-label="Explore standings"
