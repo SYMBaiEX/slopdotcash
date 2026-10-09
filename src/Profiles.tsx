@@ -155,44 +155,48 @@ export function ProfileActivity({
       ) : null}
       <h2>Contribution record</h2>
       <div className="profile-totals">
-        {summary}
-        {state.status === "ready" ? (
-          <>
-            {(
-              [
-                ["Merged", "merged"],
-                ["Open", "open"],
-                ["Closed without merging", "closed"],
-              ] as const
-            ).map(([label, key]) => (
-              <div key={key}>
-                <strong>
-                  {counts ? counts[key].toLocaleString() : "Unknown"}
-                </strong>
-                <span>PRs {label.toLowerCase()}</span>
-              </div>
-            ))}
-          </>
-        ) : null}
-        <div>
-          <strong>
-            {payments
-              ? dollars(payments.reduce((n, r) => n + r.amount, 0n))
-              : recordsLoading || (!id && state.status === "loading")
-                ? "Loading…"
-                : "Unavailable"}
-          </strong>
-          <span>verified payments received · USDC</span>
+        <div className="profile-score-summary">{summary}</div>
+        <div className="profile-work-summary">
+          {state.status === "ready" ? (
+            <>
+              {(
+                [
+                  ["Merged", "merged"],
+                  ["Open", "open"],
+                  ["Closed without merging", "closed"],
+                ] as const
+              ).map(([label, key]) => (
+                <div key={key}>
+                  <strong>
+                    {counts ? counts[key].toLocaleString() : "Unknown"}
+                  </strong>
+                  <span>PRs {label.toLowerCase()}</span>
+                </div>
+              ))}
+            </>
+          ) : null}
         </div>
-        <div>
-          <strong>
-            {id
-              ? dollars(direct.reduce((n, r) => n + r.amount, 0n))
-              : state.status === "loading"
-                ? "Loading…"
-                : "Unavailable"}
-          </strong>
-          <span>direct payments reported · USDC</span>
+        <div className="profile-payment-summary">
+          <div>
+            <strong>
+              {payments
+                ? dollars(payments.reduce((n, r) => n + r.amount, 0n))
+                : recordsLoading || (!id && state.status === "loading")
+                  ? "Loading…"
+                  : "Unavailable"}
+            </strong>
+            <span>verified payments received · USDC</span>
+          </div>
+          <div>
+            <strong>
+              {id
+                ? dollars(direct.reduce((n, r) => n + r.amount, 0n))
+                : state.status === "loading"
+                  ? "Loading…"
+                  : "Unavailable"}
+            </strong>
+            <span>direct payments reported · USDC</span>
+          </div>
         </div>
       </div>
 
@@ -339,18 +343,20 @@ function ProfileTimeline({
   }
   return (
     <section className="profile-timeline" aria-label="Contribution activity">
-      <h2>Activity</h2>
-      {records.length > 10 ? (
-        <button
-          type="button"
-          aria-expanded={expanded}
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded
-            ? "Show recent activity"
-            : `View all ${records.length} activity records`}
-        </button>
-      ) : null}
+      <div className="profile-activity-heading">
+        <h2>Activity</h2>
+        {records.length > 10 ? (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded
+              ? "Show recent activity"
+              : `View all ${records.length} activity records`}
+          </button>
+        ) : null}
+      </div>
       {[...groups].map(([day, rows]) => (
         <section key={day}>
           <h3>
@@ -363,12 +369,13 @@ function ProfileTimeline({
           <ul className="points-history">
             {rows.map((row) => (
               <li key={row.key} data-activity-date={row.date ?? ""}>
-                <ExternalLinkAnchor href={row.href}>
-                  <strong>{row.title}</strong>
-                </ExternalLinkAnchor>
-                <small>
-                  {row.amount} · {row.detail}
-                </small>
+                <div className="profile-activity-description">
+                  <ExternalLinkAnchor href={row.href}>
+                    <strong>{row.title}</strong>
+                  </ExternalLinkAnchor>
+                  <small>{row.detail}</small>
+                </div>
+                <span className="profile-activity-amount">{row.amount}</span>
               </li>
             ))}
           </ul>
