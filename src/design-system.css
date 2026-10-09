@@ -1931,3 +1931,20 @@ main h2,
   object-fit: cover;
   font-size: 96px;
 }
+
+.project-carousel .carousel-project-card {
+  width: 224px;
+}
+.carousel-project-card .project-card-heading {
+  padding: 14px 14px 0;
+}
+.carousel-project-card .project-card-heading h3 {
+  font-size: 20px;
+}
+.carousel-project-card .project-card-content {
+  padding: 10px 14px 14px;
+  gap: 8px;
+}
+.carousel-project-card .project-bounty strong {
+  font-size: 23px;
+}
