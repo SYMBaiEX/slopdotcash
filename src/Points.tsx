@@ -516,56 +516,79 @@ export function ProfilePoints({
           </>
         }
       />
-      <h2>Slop Points</h2>
-      <Notice />
-      {state.status === "ready" && (m || identity || recorded) ? (
-        <>
+      <section
+        className="profile-points-summary"
+        aria-labelledby="profile-points-heading"
+      >
+        <div className="profile-points-heading">
+          <h2 id="profile-points-heading">Slop Points</h2>
+          <a href="/points#rules">How to earn points</a>
+        </div>
+        {state.status === "ready" && (m || identity || recorded) ? (
+          <div className="profile-points-content">
+            <div className="profile-points-month">
+              <strong>{m?.monthly.toLocaleString() ?? "0"}</strong>
+              <span>earned this month</span>
+            </div>
+            <div className="profile-points-milestones">
+              {m?.badges.length ? (
+                <ul aria-label="Points milestones">
+                  {m.badges.map((badge) => (
+                    <li key={badge}>{badge}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Welcome to Slop</p>
+              )}
+              {identity ? (
+                <p>
+                  5 welcome points · {identity.socialPoints ?? 0} X connection
+                  points
+                </p>
+              ) : null}
+              <PublicXLink
+                actorId={(m?.actor ?? identity?.actor ?? recorded!).id}
+              />
+            </div>
+            <div className="profile-points-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(
+                      `${window.location.origin}/contributors/${encodeURIComponent(login)}`,
+                    )
+                    .then(
+                      () => setCopied("Link copied"),
+                      () =>
+                        setCopied(
+                          "Copy unavailable. Copy this page’s address.",
+                        ),
+                    );
+                }}
+              >
+                Copy profile link
+              </button>
+              <span role="status">{copied}</span>
+              {own ? (
+                <a href="/account">Manage account and social connections</a>
+              ) : null}
+            </div>
+          </div>
+        ) : state.status === "ready" ? (
           <p>
-            {m?.monthly.toLocaleString() ?? "0"} earned points this month
-            {identity
-              ? ` · 5 welcome points · ${identity.socialPoints ?? 0} X connection points`
-              : ""}
+            {joinStatus === "loading"
+              ? "Looking up membership…"
+              : joinStatus === "unavailable"
+                ? "Membership is temporarily unavailable."
+                : "No recorded points for this account yet. Join to get started."}
           </p>
-          {m || identity || recorded ? (
-            <PublicXLink
-              actorId={(m?.actor ?? identity?.actor ?? recorded!).id}
-            />
-          ) : null}
-          <p>{m?.badges.join(" · ") ?? "Welcome to Slop"}</p>
-          <button
-            type="button"
-            onClick={() => {
-              void navigator.clipboard
-                .writeText(
-                  `${window.location.origin}/contributors/${encodeURIComponent(login)}`,
-                )
-                .then(
-                  () => setCopied("Link copied"),
-                  () =>
-                    setCopied("Copy unavailable. Copy this page’s address."),
-                );
-            }}
-          >
-            Copy profile link
-          </button>
-          <span role="status">{copied}</span>
-        </>
-      ) : state.status === "ready" ? (
-        <p>
-          {joinStatus === "loading"
-            ? "Looking up membership…"
-            : joinStatus === "unavailable"
-              ? "Membership is temporarily unavailable."
-              : "No recorded points for this account yet. Join to get started."}
-        </p>
-      ) : null}
-      <p>{POINTS_NOTICE}</p>
-      {own ? (
-        <p>
-          <a href="/account">Manage account and social connections</a>
-        </p>
-      ) : null}
-      <a href="/points#rules">How to earn points</a>
+        ) : null}
+        <div className="profile-points-notes">
+          <Notice />
+          <p>{POINTS_NOTICE}</p>
+        </div>
+      </section>
     </section>
   );
 }
