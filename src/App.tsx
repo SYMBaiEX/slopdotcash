@@ -434,7 +434,8 @@ function ProjectCarousel({
 }) {
   const loopProjects = Array.from(
     { length: projects.length ? Math.ceil(8 / projects.length) : 0 },
-    () => projects,
+    (_, copy) =>
+      projects.map((project) => ({ project, key: `${project.id}-${copy}` })),
   ).flat();
   return (
     <section
@@ -449,20 +450,17 @@ function ProjectCarousel({
             animationDuration: `${Math.max(30, loopProjects.length * 6)}s`,
           }}
         >
-          <div className="project-carousel-group">
-            {loopProjects.map((project, index) => (
-              <ProjectCard key={`${project.id}-${index}`} project={project} />
-            ))}
-          </div>
-          <div className="project-carousel-group" aria-hidden="true">
-            {loopProjects.map((project, index) => (
-              <ProjectCard
-                key={`${project.id}-${index}`}
-                project={project}
-                repeated
-              />
-            ))}
-          </div>
+          {[false, true].map((repeated) => (
+            <div
+              className="project-carousel-group"
+              key={String(repeated)}
+              aria-hidden={repeated || undefined}
+            >
+              {loopProjects.map(({ project, key }) => (
+                <ProjectCard key={key} project={project} repeated={repeated} />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
       <div className="carousel-actions">
@@ -873,8 +871,6 @@ function InstallPanel({ project }: { project: ProjectDefinition }) {
     </div>
   );
 }
-
-/** Dollars are simulated only against committed funds; otherwise a share. */
 
 function ProjectPaymentHistory({
   project,
