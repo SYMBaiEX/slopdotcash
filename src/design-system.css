@@ -2284,3 +2284,91 @@ main h2,
     padding: 12px 14px;
   }
 }
+
+/* Project identity: image, name and repository form one anchor. */
+.project-hero-grid > div > .project-info-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.project-info-heading .project-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+}
+.project-identity-text {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.project-hero-grid .project-info-heading h2 {
+  font-size: 36px;
+  line-height: 1;
+}
+.project-identity-text > a {
+  font-family: inherit;
+  font-size: 13px;
+}
+.project-hero-grid .project-info {
+  margin-left: 72px;
+}
+.project-hero-grid .project-info .hero-copy {
+  font-size: 16px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+  max-width: 64ch;
+}
+.project-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.project-facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.project-facts dt {
+  min-width: 120px;
+  margin: 0;
+  font-size: 12px;
+}
+.project-facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+.project-facts dd > span {
+  display: inline;
+  margin: 0;
+  font-size: 12px;
+}
+.project-summary-links {
+  margin-top: 18px;
+  gap: 20px;
+}
+.project-summary-links a {
+  font-size: 13px;
+  color: var(--ink);
+}
+@media (max-width: 680px) {
+  .project-info-heading .project-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .project-hero-grid .project-info-heading h2 {
+    font-size: 30px;
+  }
+  .project-hero-grid .project-info {
+    margin-left: 0;
+  }
+  .project-hero-grid .project-info .hero-copy {
+    font-size: 15px;
+  }
+  .project-facts dt {
+    min-width: 110px;
+  }
+}

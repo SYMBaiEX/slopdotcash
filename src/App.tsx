@@ -1584,12 +1584,15 @@ function ProjectPage({
           <div className="project-hero-grid">
             <div>
               <div className="project-info-heading">
-                <h2>{project.name}</h2>
-                <ExternalLinkAnchor href={project.links.repository}>
-                  <FolderGit2 aria-hidden="true" size={16} />
-                  {primaryRepository?.displayName ?? "View repository"}
-                  <ExternalLink aria-hidden="true" size={14} />
-                </ExternalLinkAnchor>
+                <ProjectOwnerAvatar project={project} size={128} />
+                <div className="project-identity-text">
+                  <h2>{project.name}</h2>
+                  <ExternalLinkAnchor href={project.links.repository}>
+                    <FolderGit2 aria-hidden="true" size={16} />
+                    {primaryRepository?.displayName ?? "View repository"}
+                    <ExternalLink aria-hidden="true" size={14} />
+                  </ExternalLinkAnchor>
+                </div>
               </div>
 
               <div className="project-info">
