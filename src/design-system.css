@@ -795,7 +795,7 @@ label {
 .how-tracks article {
   padding: 24px;
   border-radius: var(--brand-radius-large);
-  background: var(--raised);
+  background: var(--paper);
 }
 .how-tracks h3 {
   margin: 0 0 24px;
