@@ -293,7 +293,7 @@ On the same day the owner chose the Base release policy:
 
 **Decision update, 9 October 2026.** The repository owner (GitHub `lalalune`) changed the platform-fee recipients for staging, testnet and production:
 
-- **Base:** `0x8f77c37d8650776bfe73c9b12b15209ee15d9b86` replaces `0xb7b0d5e45016d6d31629d9ab375df770fd2aaf77`, the 8 October 2026 recipient. The old address is retired. It never received a payment, and no policy, reservation, plan or settlement names it.
+- **Base:** `0x8f77c37d8650776bfe73c9b12b15209ee15d9b86` replaces `0xb7b0d5e45016d6d31629d9ab375df770fd2aaf77`, the 8 October 2026 recipient. The old address is retired. No current repository policy, reservation, plan or settlement names it.
 - **Solana:** `9EyxVhhnCJH4QL5bDsRyukrkHFyitFMuf45UDdLxm4BY` (base58 public key) is Slop's published Solana platform-fee recipient. A Solana fresh-cycle policy can name only this address.
 
 The rule applies to new fresh-cycle policies. No closed cycle, funding record or reservation binds a fee recipient today, so no history changes. A later record that binds a different address keeps it; history is not rewritten. Slop still holds no key and does not sign or broadcast. No signing key goes into CI.

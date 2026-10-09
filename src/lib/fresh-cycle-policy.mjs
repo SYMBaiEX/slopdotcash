@@ -1,7 +1,7 @@
 /**
  * Slop's published Base platform-fee recipient, in lowercase canonical form.
  * The repository owner chose it on 9 October 2026. It replaces the retired
- * 8 October 2026 address (RFC #472), which never received a payment.
+ * 8 October 2026 address (RFC #472).
  * A Base fresh-cycle policy may name only this address.
  */
 export const BASE_PLATFORM_FEE_RECIPIENT =

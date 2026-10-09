@@ -333,8 +333,8 @@ stream recipient, the signer is the reviewed `recipientGithub` actor with an
 EIP-191 proof, and the fee goes to Slop's published Base fee recipient
 `0x8f77c37d8650776bfe73c9b12b15209ee15d9b86`. On 9 October 2026 the owner
 replaced the 8 October recipient
-`0xb7b0d5e45016d6d31629d9ab375df770fd2aaf77`, which is retired and never
-received a payment. No project uses Base today and no payment is enabled.
+`0xb7b0d5e45016d6d31629d9ab375df770fd2aaf77`, which is retired. No project
+uses Base today and no payment is enabled.
 
 ### Read-only Base payout check
 

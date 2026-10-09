@@ -158,7 +158,7 @@ same four steps with a Base Sablier Lockup v4 stream instead of a Squads vault:
   `0x8f77c37d8650776bfe73c9b12b15209ee15d9b86` (lowercase canonical form). The
   schema refuses any other Base address. On 9 October 2026 the owner replaced
   the 8 October recipient `0xb7b0d5e45016d6d31629d9ab375df770fd2aaf77`. That
-  address is retired and never received a payment.
+  address is retired.
 - The reservation `instrumentId` is `sablier-lockup-v4:base:<contract>:<stream>`.
   The reserved plan is a `base-usdc-transfer-plan` whose source is the stream
   recipient. The fee is a separate transfer in the same plan.
