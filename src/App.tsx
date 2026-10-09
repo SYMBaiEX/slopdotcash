@@ -1598,7 +1598,7 @@ function ProjectPage({
           <div className="project-hero-grid">
             <div>
               <div className="project-info-heading">
-                <ProjectOwnerAvatar project={project} size={128} />
+                <ProjectOwnerAvatar project={project} size={256} />
                 <div className="project-identity-text">
                   <h2>{project.name}</h2>
                   <ExternalLinkAnchor href={project.links.repository}>

@@ -2293,8 +2293,8 @@ main h2,
   margin-bottom: 16px;
 }
 .project-info-heading .project-avatar {
-  width: 88px;
-  height: 88px;
+  width: 112px;
+  height: 112px;
   border-radius: 8px;
 }
 .project-identity-text {
@@ -2311,7 +2311,7 @@ main h2,
   font-size: 13px;
 }
 .project-hero-grid .project-info {
-  margin-left: 104px;
+  margin-left: 128px;
 }
 .project-hero-grid .project-info .hero-copy {
   font-size: 16px;
@@ -2356,8 +2356,8 @@ main h2,
 }
 @media (max-width: 680px) {
   .project-info-heading .project-avatar {
-    width: 64px;
-    height: 64px;
+    width: 96px;
+    height: 96px;
   }
   .project-hero-grid .project-info-heading h2 {
     font-size: 30px;
@@ -2385,4 +2385,113 @@ main h2,
 .project-hero-grid .project-info .project-facts + .hero-copy {
   margin-top: 18px;
   margin-bottom: 0;
+}
+
+@media (max-width: 680px) {
+  .project-hero .breadcrumb {
+    margin-bottom: 18px;
+  }
+  .project-hero .project-contribution-headline {
+    font-size: 28px;
+    line-height: 1.12;
+    margin-bottom: 24px;
+  }
+  .project-hero-grid > div > .project-info-heading {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .project-identity-text {
+    flex: 1;
+  }
+  .project-identity-text > a {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .project-identity-text > a svg {
+    flex-shrink: 0;
+  }
+  .project-facts {
+    gap: 12px;
+  }
+  .project-facts > div {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .project-facts dt {
+    min-width: 0;
+    line-height: 1.5;
+  }
+  .project-facts dd {
+    gap: 2px 8px;
+  }
+  .project-facts dd > span {
+    display: block;
+    flex-basis: 100%;
+  }
+  .project-hero-grid .project-info .project-facts + .hero-copy {
+    margin-top: 24px;
+    line-height: 1.65;
+  }
+  .project-summary-links {
+    gap: 24px;
+    margin-top: 16px;
+  }
+  .project-summary-links a {
+    min-height: 44px;
+  }
+  .project-hero .project-reward-status {
+    padding: 16px;
+  }
+  .project-hero .install-panel {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .install-panel .agent-prompt-box {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+    gap: 12px;
+  }
+  .install-panel .agent-prompt-copy {
+    font-size: 12px;
+    line-height: 1.65;
+    text-align: left;
+  }
+  .project-hero .install-panel .agent-prompt-box .button {
+    justify-self: end;
+    min-height: 44px;
+    padding-inline: 16px;
+  }
+  .project-hero .install-advanced summary {
+    line-height: 1.6;
+  }
+  .payment-history .money-summary {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 20px;
+  }
+  .payment-history .money-summary strong {
+    font-size: 24px;
+  }
+  .payment-history .money-summary span {
+    font-size: 12px;
+  }
+  .payment-history .plain-table {
+    min-width: 0;
+    font-size: 12px;
+  }
+  .payment-history .plain-table th,
+  .payment-history .plain-table td {
+    padding: 12px 5px;
+  }
+  .payment-history .plain-table th:first-child,
+  .payment-history .plain-table td:first-child {
+    padding-left: 0;
+  }
+  .payment-history .plain-table th:last-child,
+  .payment-history .plain-table td:last-child {
+    padding-right: 0;
+  }
 }
