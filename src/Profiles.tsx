@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { browserDeployment } from "./lib/browser-deployment";
 import { fetchWithDeadline, readBoundedJson } from "./lib/browser-json";
 import type { CycleIndex } from "./lib/cycle-index";
 import type { ScoreEvent } from "./lib/leaderboard";
@@ -11,6 +12,7 @@ import {
 } from "./lib/profiles";
 import { findProject, findProjectByRepositoryId } from "./lib/projects.mjs";
 import { TARGET_REPOSITORIES } from "./lib/repositories.mjs";
+import { SOURCE_REPOSITORY } from "./lib/source-repository";
 import { usePublicResource } from "./lib/use-public-resource";
 import {
   ContributorIdentity,
@@ -244,6 +246,20 @@ export function ProfileActivity({
           ) : null}
         </>
       )}
+      <details>
+        <summary>Penalty history</summary>
+        <p>
+          No penalty policy version is approved or active. No penalties are
+          recorded.
+        </p>
+        <p className="points-meta">
+          <a
+            href={`${SOURCE_REPOSITORY}/blob/${browserDeployment.branch}/docs/slop-product-requirements.md#closure-penalties-and-outcome-ratios`}
+          >
+            Penalty policy
+          </a>
+        </p>
+      </details>
       <p className="points-meta">
         Direct payments come from published disclosures outside Slop’s verified
         settlement process.

@@ -82,6 +82,20 @@ test("profiles preserve legacy coverage and expose recorded issue history", asyn
     profile.getByText("Issue history is unavailable in this census."),
   ).toBeVisible();
   await expect(profile.getByLabel("Period (UTC)")).toHaveCount(0);
+  const penalty = profile.locator("summary", { hasText: /^Penalty history$/ });
+  await penalty.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    profile.getByText(
+      "No penalty policy version is approved or active. No penalties are recorded.",
+    ),
+  ).toBeVisible();
+  await expect(
+    profile.getByRole("link", { name: "Penalty policy" }),
+  ).toHaveAttribute(
+    "href",
+    /\/docs\/slop-product-requirements\.md#closure-penalties-and-outcome-ratios$/,
+  );
   await page.keyboard.press("Tab");
   expect(
     await page.evaluate(() => document.activeElement !== document.body),
