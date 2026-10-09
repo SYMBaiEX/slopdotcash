@@ -2293,8 +2293,8 @@ main h2,
   margin-bottom: 16px;
 }
 .project-info-heading .project-avatar {
-  width: 56px;
-  height: 56px;
+  width: 88px;
+  height: 88px;
   border-radius: 8px;
 }
 .project-identity-text {
@@ -2311,7 +2311,7 @@ main h2,
   font-size: 13px;
 }
 .project-hero-grid .project-info {
-  margin-left: 72px;
+  margin-left: 104px;
 }
 .project-hero-grid .project-info .hero-copy {
   font-size: 16px;
@@ -2356,8 +2356,8 @@ main h2,
 }
 @media (max-width: 680px) {
   .project-info-heading .project-avatar {
-    width: 44px;
-    height: 44px;
+    width: 64px;
+    height: 64px;
   }
   .project-hero-grid .project-info-heading h2 {
     font-size: 30px;
