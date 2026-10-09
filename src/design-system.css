@@ -1231,7 +1231,7 @@ main h2,
   letter-spacing: normal;
 }
 
-.previous-payouts > summary {
+.cycle-allocation-details > summary {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1245,26 +1245,27 @@ main h2,
   font-weight: 600;
 }
 
-.previous-payouts > summary::-webkit-details-marker {
+.cycle-allocation-details > summary::-webkit-details-marker {
   display: none;
 }
 
-.previous-payouts > summary:hover {
+.cycle-allocation-details > summary:hover {
   border-color: var(--orange);
 }
 
-.payout-record-count {
+.cycle-allocation-details > summary svg {
   margin-left: auto;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 400;
 }
 
-.previous-payouts[open] > summary svg {
+.cycle-allocation-details {
+  margin-block: 16px 32px;
+}
+
+.cycle-allocation-details[open] > summary svg {
   transform: rotate(90deg);
 }
 
-.previous-payouts .plain-table-wrap {
+.cycle-allocation-details .plain-table-wrap {
   margin-top: 16px;
 }
 

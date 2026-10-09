@@ -949,56 +949,43 @@ function ProjectPaymentHistory({
       {cycles.length === 0 ? (
         <EmptyState text="No cycles have closed yet." />
       ) : (
-        <details className="previous-payouts">
-          <summary>
-            <span>
-              {externalPrize ? "Previous cycles" : "Previous payouts & cycles"}
-            </span>
-            <span className="payout-record-count">
-              {cycles.length} {cycles.length === 1 ? "record" : "records"}
-            </span>
-            <ChevronRight aria-hidden="true" size={18} />
-          </summary>
-          <div className="plain-table-wrap">
-            <table className="plain-table">
-              <caption className="visually-hidden">
-                {project.name} cycles
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Cycle</th>
+        <div className="plain-table-wrap">
+          <table className="plain-table">
+            <caption className="visually-hidden">{project.name} cycles</caption>
+            <thead>
+              <tr>
+                <th scope="col">Cycle</th>
+                {externalPrize ? null : (
+                  <>
+                    <th scope="col">Approved</th>
+                    <th scope="col">Fee</th>
+                    <th scope="col">Paid</th>
+                  </>
+                )}
+                <th scope="col">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cycles.map((cycle) => (
+                <tr key={cycle.cycleId}>
+                  <th scope="row">
+                    <Link href={`/cycles/${project.slug}/${cycle.cycleId}`}>
+                      {cycle.cycleId}
+                    </Link>
+                  </th>
                   {externalPrize ? null : (
                     <>
-                      <th scope="col">Approved</th>
-                      <th scope="col">Fee</th>
-                      <th scope="col">Paid</th>
+                      <td>{formatMicroUsdc(cycle.reward.approvedMinor)}</td>
+                      <td>{formatMicroUsdc(cycle.reward.feeMinor)}</td>
+                      <td>{formatMicroUsdc(cycle.reward.paidMinor)}</td>
                     </>
                   )}
-                  <th scope="col">State</th>
+                  <td>{cycle.state.replaceAll("-", " ")}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {cycles.map((cycle) => (
-                  <tr key={cycle.cycleId}>
-                    <th scope="row">
-                      <Link href={`/cycles/${project.slug}/${cycle.cycleId}`}>
-                        {cycle.cycleId}
-                      </Link>
-                    </th>
-                    {externalPrize ? null : (
-                      <>
-                        <td>{formatMicroUsdc(cycle.reward.approvedMinor)}</td>
-                        <td>{formatMicroUsdc(cycle.reward.feeMinor)}</td>
-                        <td>{formatMicroUsdc(cycle.reward.paidMinor)}</td>
-                      </>
-                    )}
-                    <td>{cycle.state.replaceAll("-", " ")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );
