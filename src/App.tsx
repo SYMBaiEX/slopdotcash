@@ -21,7 +21,6 @@ import { CycleArchivePage, CyclePage } from "./CyclePages";
 import { EarningsPage } from "./Earnings";
 import { EscrowFunding } from "./EscrowFunding";
 import {
-  type FundingDataState,
   formatFundingAmount,
   formatFundingMinor,
   fundingTransactionExplorer,
@@ -36,7 +35,6 @@ import {
 import { CONTACT_EMAIL, CONTACT_MAILTO } from "./lib/contact";
 import { copyText } from "./lib/copy-text";
 import { currentProjectFundingRecords } from "./lib/funding";
-import { commitmentVerifiedNetMinor } from "./lib/funding-commitment";
 import { homeProjects } from "./lib/home-projects";
 import { createInstallCommand } from "./lib/install-command";
 import {
@@ -372,45 +370,11 @@ function ProjectOwnerAvatar({
 
 function ProjectCard({
   project,
-  funding,
-  imageTop = false,
   repeated = false,
 }: {
   project: ProjectDefinition;
-  funding: FundingDataState;
-  imageTop?: boolean;
   repeated?: boolean;
 }) {
-  const vaults =
-    project.funding.commitments?.filter(
-      (instrument) =>
-        instrument.kind === "squads-v4-vault" && instrument.replacedAt === null,
-    ) ?? [];
-  const vaultRecords =
-    funding.status === "ready"
-      ? funding.index.commitments.filter(
-          (record) =>
-            record.projectId === project.id &&
-            "vault" in record.instrument &&
-            vaults.some(
-              (vault) =>
-                vault.kind === "squads-v4-vault" &&
-                "vault" in record.instrument &&
-                vault.vault === record.instrument.vault,
-            ),
-        )
-      : [];
-  const vaultBalance =
-    vaults.length === 0
-      ? "Unavailable"
-      : funding.status === "loading"
-        ? "Loading…"
-        : funding.status === "error" ||
-            !vaultRecords.some((record) => record.state === "verified-on-chain")
-          ? "Unavailable"
-          : formatMicroUsdc(
-              commitmentVerifiedNetMinor(vaultRecords).toString(),
-            );
   const amount =
     project.reward.kind === "monthly-pool"
       ? monthlyPoolCapLabel(project.reward)
@@ -418,19 +382,14 @@ function ProjectCard({
         "External");
   return (
     <Link
-      className={
-        imageTop ? "project-card carousel-project-card" : "project-card"
-      }
+      className="project-card carousel-project-card"
       href={`/projects/${project.slug}`}
       tabIndex={repeated ? -1 : undefined}
     >
-      {imageTop ? (
-        <div className="project-card-image">
-          <ProjectOwnerAvatar project={project} size={512} />
-        </div>
-      ) : null}
+      <div className="project-card-image">
+        <ProjectOwnerAvatar project={project} size={512} />
+      </div>
       <div className="project-card-heading">
-        {imageTop ? null : <ProjectOwnerAvatar project={project} />}
         <h3>{project.name}</h3>
         <ArrowRight aria-hidden="true" />
       </div>
@@ -442,13 +401,6 @@ function ProjectCard({
             <span>/mo target</span>
           ) : null}
         </p>
-        {!imageTop ? (
-          <small className="project-money-state">
-            {project.reward.kind === "monthly-pool"
-              ? `Vault: ${vaultBalance}`
-              : "External prize"}
-          </small>
-        ) : null}
         {project.reward.reviewBudget ? (
           <small className="project-review-budget">
             + {reviewBudgetLabel(project.reward.reviewBudget)}
@@ -477,10 +429,8 @@ function bootstrapAgentPrompt(): string {
 
 function ProjectCarousel({
   projects,
-  funding,
 }: {
   projects: readonly ProjectDefinition[];
-  funding: FundingDataState;
 }) {
   const loopProjects = Array.from(
     { length: projects.length ? Math.ceil(8 / projects.length) : 0 },
@@ -501,12 +451,7 @@ function ProjectCarousel({
         >
           <div className="project-carousel-group">
             {loopProjects.map((project, index) => (
-              <ProjectCard
-                key={`${project.id}-${index}`}
-                project={project}
-                funding={funding}
-                imageTop
-              />
+              <ProjectCard key={`${project.id}-${index}`} project={project} />
             ))}
           </div>
           <div className="project-carousel-group" aria-hidden="true">
@@ -514,8 +459,6 @@ function ProjectCarousel({
               <ProjectCard
                 key={`${project.id}-${index}`}
                 project={project}
-                funding={funding}
-                imageTop
                 repeated
               />
             ))}
@@ -532,7 +475,6 @@ function ProjectCarousel({
 }
 
 function ProjectsPage() {
-  const [funding] = useFundingIndex();
   return (
     <main className="shell projects-directory">
       <div className="home-section-heading">
@@ -549,7 +491,7 @@ function ProjectsPage() {
       <div className="directory-grid">
         {PROJECTS.map((project) => (
           <div className="directory-project" key={project.id}>
-            <ProjectCard project={project} funding={funding} imageTop />
+            <ProjectCard project={project} />
             <p className="directory-state">
               {project.status === "paused" ? "Paused · listed only" : "Active"}
               {project.reward.paymentMode === "disabled"
@@ -638,7 +580,6 @@ function HowItWorksSection() {
 }
 
 function HomePage() {
-  const [funding] = useFundingIndex();
   const promotedProjects = homeProjects();
   return (
     <main>
@@ -663,7 +604,7 @@ function HomePage() {
             <Plus aria-hidden="true" /> Add a project
           </Link>
         </div>
-        <ProjectCarousel projects={promotedProjects} funding={funding} />
+        <ProjectCarousel projects={promotedProjects} />
       </section>
       <HowItWorksSection />
       <GlobalLeaderboard />
